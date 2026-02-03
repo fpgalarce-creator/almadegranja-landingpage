@@ -118,14 +118,13 @@ function Home() {
       }
       return [...prev, { ...product, quantity: 1 }]
     })
-    setDrawerOpen(true)
   }
 
   const updateQuantity = (id, delta) => {
     setCartItems((prev) =>
       prev
         .map((item) =>
-          item.id === id ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item
+          item.id === id ? { ...item, quantity: Math.max(0, item.quantity + delta) } : item
         )
         .filter((item) => item.quantity > 0)
     )
@@ -156,6 +155,8 @@ function Home() {
           <Products
             products={catalog}
             onAdd={addToCart}
+            onDecrement={(productId) => updateQuantity(productId, -1)}
+            cartItems={cartItems}
             selectedCategory={selectedCategory}
             onCategoryChange={setSelectedCategory}
           />
@@ -181,6 +182,9 @@ function Home() {
 function Navbar({ totalItems, onCartClick, onCategorySelect }) {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isProductsOpen, setIsProductsOpen] = useState(false)
+  const productsMenuRef = useRef(null)
+  const productsMobileRef = useRef(null)
+  const closeTimeoutRef = useRef(null)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -191,7 +195,57 @@ function Navbar({ totalItems, onCartClick, onCategorySelect }) {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  useEffect(() => {
+    return () => {
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!isProductsOpen) return
+    const handleClickOutside = (event) => {
+      const target = event.target
+      if (
+        productsMenuRef.current?.contains(target) ||
+        productsMobileRef.current?.contains(target)
+      ) {
+        return
+      }
+      setIsProductsOpen(false)
+    }
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setIsProductsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isProductsOpen])
+
+  const openProductsMenu = () => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current)
+    }
+    setIsProductsOpen(true)
+  }
+
+  const scheduleCloseProductsMenu = () => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current)
+    }
+    closeTimeoutRef.current = setTimeout(() => {
+      setIsProductsOpen(false)
+    }, 160)
+  }
+
   const productLinks = [
+    { label: 'Ver todo', value: 'todos' },
     { label: 'Quesos', value: 'quesos' },
     { label: 'Frutos secos', value: 'frutos_secos' },
     { label: 'Huevos de campo', value: 'huevos_campo' },
@@ -200,10 +254,8 @@ function Navbar({ totalItems, onCartClick, onCategorySelect }) {
 
   return (
     <header
-      className={`sticky top-0 z-40 transition-all duration-300 ${
-        isScrolled
-          ? 'border-b border-brand-100 bg-white/90 shadow-lg shadow-brand-900/5 backdrop-blur'
-          : 'bg-white/40'
+      className={`sticky top-0 z-50 border-b border-black/5 bg-white/70 backdrop-blur transition-all duration-300 ${
+        isScrolled ? 'shadow-lg shadow-brand-900/5' : ''
       }`}
     >
       <div
@@ -222,9 +274,10 @@ function Navbar({ totalItems, onCartClick, onCategorySelect }) {
             Nosotros
           </a>
           <div
+            ref={productsMenuRef}
             className="group relative"
-            onMouseEnter={() => setIsProductsOpen(true)}
-            onMouseLeave={() => setIsProductsOpen(false)}
+            onMouseEnter={openProductsMenu}
+            onMouseLeave={scheduleCloseProductsMenu}
           >
             <button
               type="button"
@@ -237,6 +290,8 @@ function Navbar({ totalItems, onCartClick, onCategorySelect }) {
               <span className="text-xs">▾</span>
             </button>
             <div
+              onMouseEnter={openProductsMenu}
+              onMouseLeave={scheduleCloseProductsMenu}
               className={`absolute left-0 top-full mt-3 w-48 rounded-2xl border border-brand-100 bg-white p-2 shadow-xl shadow-brand-900/10 transition ${
                 isProductsOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
               } md:group-hover:pointer-events-auto md:group-hover:opacity-100`}
@@ -264,7 +319,7 @@ function Navbar({ totalItems, onCartClick, onCategorySelect }) {
             onClick={onCartClick}
             className="flex items-center gap-2 rounded-full bg-brand-800 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-lg shadow-brand-900/15 transition hover:-translate-y-0.5 hover:bg-brand-700"
           >
-            Cart ({totalItems})
+            Carro ({totalItems})
           </button>
         </nav>
         <button
@@ -272,9 +327,9 @@ function Navbar({ totalItems, onCartClick, onCategorySelect }) {
           onClick={onCartClick}
           className="md:hidden rounded-full border border-brand-200 px-3 py-1 text-xs font-semibold text-brand-700"
         >
-          Cart ({totalItems})
+          Carro ({totalItems})
         </button>
-        <div className="relative md:hidden">
+        <div ref={productsMobileRef} className="relative md:hidden">
           <button
             type="button"
             onClick={() => setIsProductsOpen((prev) => !prev)}
@@ -417,7 +472,7 @@ function About() {
   )
 }
 
-function Products({ products, onAdd, selectedCategory, onCategoryChange }) {
+function Products({ products, onAdd, onDecrement, cartItems, selectedCategory, onCategoryChange }) {
   const filters = [
     { label: 'Todos', value: 'todos' },
     { label: 'Quesos', value: 'quesos' },
@@ -439,6 +494,13 @@ function Products({ products, onAdd, selectedCategory, onCategoryChange }) {
       })),
     [products]
   )
+
+  const quantityById = useMemo(() => {
+    return cartItems.reduce((acc, item) => {
+      acc[item.id] = item.quantity
+      return acc
+    }, {})
+  }, [cartItems])
 
   const visibleProducts = useMemo(() => {
     if (selectedCategory === 'todos') return normalizedProducts
@@ -510,12 +572,27 @@ function Products({ products, onAdd, selectedCategory, onCategoryChange }) {
                   <span>{product.unit}</span>
                   <span className="text-lg font-semibold text-brand-900">${product.price}</span>
                 </div>
-                <button
-                  onClick={() => onAdd(product)}
-                  className="w-full rounded-full bg-brand-800 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-brand-900/10 transition hover:-translate-y-0.5 hover:bg-brand-700"
-                >
-                  Añadir
-                </button>
+                <div className="flex items-center justify-between rounded-full border border-brand-200 bg-white px-3 py-2 text-sm shadow-sm">
+                  <button
+                    type="button"
+                    onClick={() => onDecrement(product.id)}
+                    className="flex h-8 w-8 items-center justify-center rounded-full border border-brand-200 text-brand-700 transition hover:bg-brand-50"
+                    aria-label={`Reducir ${product.name}`}
+                  >
+                    -
+                  </button>
+                  <span className="min-w-[24px] text-center text-sm font-semibold text-brand-800">
+                    {quantityById[product.id] ?? 0}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => onAdd(product)}
+                    className="flex h-8 w-8 items-center justify-center rounded-full border border-brand-200 text-brand-700 transition hover:bg-brand-50"
+                    aria-label={`Agregar ${product.name}`}
+                  >
+                    +
+                  </button>
+                </div>
               </div>
             </div>
           ))}
