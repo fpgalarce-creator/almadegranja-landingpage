@@ -1,0 +1,980 @@
+import { Routes, Route, Link, useNavigate } from 'react-router-dom'
+import { useEffect, useMemo, useRef, useState } from 'react'
+
+const initialForm = {
+  name: '',
+  category: 'huevos',
+  price: '',
+  unit: '',
+  imageUrl: '',
+  active: true
+}
+
+const categories = [
+  { value: 'huevos', label: 'Huevos' },
+  { value: 'quesos', label: 'Quesos' },
+  { value: 'frutos secos', label: 'Frutos secos' }
+]
+
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/admin" element={<AdminLogin />} />
+      <Route path="/admin/dashboard" element={<AdminDashboard />} />
+    </Routes>
+  )
+}
+
+function useInView(options = {}) {
+  const ref = useRef(null)
+  const [isVisible, setIsVisible] = useState(false)
+
+  useEffect(() => {
+    const element = ref.current
+    if (!element) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true)
+          observer.disconnect()
+        }
+      },
+      { threshold: 0.2, ...options }
+    )
+
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [options])
+
+  return { ref, isVisible }
+}
+
+function Reveal({ children, delay = 0 }) {
+  const { ref, isVisible } = useInView()
+
+  return (
+    <div
+      ref={ref}
+      className={`reveal ${isVisible ? 'reveal-visible' : ''}`}
+      style={{ transitionDelay: `${delay}ms` }}
+    >
+      {children}
+    </div>
+  )
+}
+
+function Home() {
+  const [products, setProducts] = useState([])
+  const [cartItems, setCartItems] = useState([])
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState('todos')
+
+  useEffect(() => {
+    fetch('/api/products')
+      .then((res) => res.json())
+      .then((data) => setProducts(data))
+      .catch(() => setProducts([]))
+  }, [])
+
+  const catalog = useMemo(() => {
+    const fallback = [
+      {
+        id: 'dummy-1',
+        name: 'Mantequilla de campo',
+        category: 'otros',
+        price: 4200,
+        unit: '250g',
+        imageUrl:
+          'https://images.unsplash.com/photo-1481391032119-d89fee407e44?auto=format&fit=crop&w=800&q=80',
+        active: true
+      },
+      {
+        id: 'dummy-2',
+        name: 'Miel orgánica',
+        category: 'otros',
+        price: 5600,
+        unit: '350g',
+        imageUrl:
+          'https://images.unsplash.com/photo-1471943311424-646960669fbc?auto=format&fit=crop&w=800&q=80',
+        active: true
+      }
+    ]
+    const list = products.length >= 8 ? products : [...products, ...fallback]
+    return list.slice(0, 12)
+  }, [products])
+
+  const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0)
+  const total = cartItems.reduce((acc, item) => acc + item.quantity * item.price, 0)
+
+  const addToCart = (product) => {
+    setCartItems((prev) => {
+      const existing = prev.find((item) => item.id === product.id)
+      if (existing) {
+        return prev.map((item) =>
+          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+        )
+      }
+      return [...prev, { ...product, quantity: 1 }]
+    })
+    setDrawerOpen(true)
+  }
+
+  const updateQuantity = (id, delta) => {
+    setCartItems((prev) =>
+      prev
+        .map((item) =>
+          item.id === id ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item
+        )
+        .filter((item) => item.quantity > 0)
+    )
+  }
+
+  const removeItem = (id) => {
+    setCartItems((prev) => prev.filter((item) => item.id !== id))
+  }
+
+  const handleSelectCategory = (category) => {
+    setSelectedCategory(category)
+    document.getElementById('productos')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  return (
+    <div className="min-h-screen bg-brand-50 text-brand-900">
+      <Navbar
+        totalItems={totalItems}
+        onCartClick={() => setDrawerOpen(true)}
+        onCategorySelect={handleSelectCategory}
+      />
+      <main>
+        <Hero onCtaClick={() => document.getElementById('productos')?.scrollIntoView({ behavior: 'smooth' })} />
+        <Reveal>
+          <About />
+        </Reveal>
+        <Reveal delay={120}>
+          <Products
+            products={catalog}
+            onAdd={addToCart}
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+          />
+        </Reveal>
+        <Reveal delay={180}>
+          <Contact />
+        </Reveal>
+      </main>
+      <Footer />
+      <FloatingButtons drawerOpen={drawerOpen} />
+      <CartDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        items={cartItems}
+        total={total}
+        onRemove={removeItem}
+        onUpdate={updateQuantity}
+      />
+    </div>
+  )
+}
+
+function Navbar({ totalItems, onCartClick, onCategorySelect }) {
+  const [isScrolled, setIsScrolled] = useState(false)
+  const [isProductsOpen, setIsProductsOpen] = useState(false)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 24)
+    }
+    handleScroll()
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  const productLinks = [
+    { label: 'Quesos', value: 'quesos' },
+    { label: 'Frutos secos', value: 'frutos_secos' },
+    { label: 'Huevos de campo', value: 'huevos_campo' },
+    { label: 'Otros', value: 'otros' }
+  ]
+
+  return (
+    <header
+      className={`sticky top-0 z-40 transition-all duration-300 ${
+        isScrolled
+          ? 'border-b border-brand-100 bg-white/90 shadow-lg shadow-brand-900/5 backdrop-blur'
+          : 'bg-white/40'
+      }`}
+    >
+      <div
+        className={`mx-auto flex max-w-6xl items-center justify-between px-6 transition-all duration-300 ${
+          isScrolled ? 'py-3' : 'py-5'
+        }`}
+      >
+        <Link to="/" className="text-xl font-semibold font-serif text-brand-800">
+          Alma de Granja
+        </Link>
+        <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
+          <a href="#inicio" className="nav-link text-brand-700">
+            Inicio
+          </a>
+          <a href="#nosotros" className="nav-link text-brand-700">
+            Nosotros
+          </a>
+          <div
+            className="group relative"
+            onMouseEnter={() => setIsProductsOpen(true)}
+            onMouseLeave={() => setIsProductsOpen(false)}
+          >
+            <button
+              type="button"
+              className="nav-link flex items-center gap-2 text-brand-700"
+              onClick={() => setIsProductsOpen((prev) => !prev)}
+              aria-haspopup="true"
+              aria-expanded={isProductsOpen}
+            >
+              Productos
+              <span className="text-xs">▾</span>
+            </button>
+            <div
+              className={`absolute left-0 top-full mt-3 w-48 rounded-2xl border border-brand-100 bg-white p-2 shadow-xl shadow-brand-900/10 transition ${
+                isProductsOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
+              } md:group-hover:pointer-events-auto md:group-hover:opacity-100`}
+            >
+              {productLinks.map((item) => (
+                <button
+                  key={item.value}
+                  type="button"
+                  onClick={() => {
+                    onCategorySelect(item.value)
+                    setIsProductsOpen(false)
+                  }}
+                  className="nav-link block w-full rounded-xl px-4 py-2 text-left text-sm text-brand-700"
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <a href="#contacto" className="nav-link text-brand-700">
+            Contacto
+          </a>
+          <button
+            type="button"
+            onClick={onCartClick}
+            className="flex items-center gap-2 rounded-full bg-brand-800 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-lg shadow-brand-900/15 transition hover:-translate-y-0.5 hover:bg-brand-700"
+          >
+            Cart ({totalItems})
+          </button>
+        </nav>
+        <button
+          type="button"
+          onClick={onCartClick}
+          className="md:hidden rounded-full border border-brand-200 px-3 py-1 text-xs font-semibold text-brand-700"
+        >
+          Cart ({totalItems})
+        </button>
+        <div className="relative md:hidden">
+          <button
+            type="button"
+            onClick={() => setIsProductsOpen((prev) => !prev)}
+            className="ml-2 rounded-full border border-brand-200 px-3 py-1 text-xs font-semibold text-brand-700"
+          >
+            Productos
+          </button>
+          {isProductsOpen ? (
+            <div className="absolute right-0 top-full mt-3 w-48 rounded-2xl border border-brand-100 bg-white p-2 shadow-xl shadow-brand-900/10">
+              {productLinks.map((item) => (
+                <button
+                  key={item.value}
+                  type="button"
+                  onClick={() => {
+                    onCategorySelect(item.value)
+                    setIsProductsOpen(false)
+                  }}
+                  className="nav-link block w-full rounded-xl px-4 py-2 text-left text-sm text-brand-700"
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </header>
+  )
+}
+
+function Hero({ onCtaClick }) {
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setVisible(true), 150)
+    return () => clearTimeout(timer)
+  }, [])
+
+  return (
+    <section id="inicio" className="hero-gradient relative overflow-hidden">
+      <div className="pointer-events-none absolute left-1/2 top-10 h-64 w-64 -translate-x-1/2 rounded-full bg-brand-200/40 blur-3xl" />
+      <div className="mx-auto grid max-w-6xl gap-12 px-6 py-24 md:grid-cols-[1.15fr_0.85fr]">
+        <div className="space-y-6">
+          <p className={`fade-up text-xs uppercase tracking-[0.35em] text-brand-500 ${visible ? 'show' : ''}`}>
+            Productos de granja premium
+          </p>
+          <h1 className={`fade-up font-serif text-4xl font-semibold text-brand-900 md:text-5xl ${visible ? 'show' : ''}`}>
+            Sabores artesanales desde el corazón de nuestra granja.
+          </h1>
+          <p className={`fade-up text-lg text-brand-700 ${visible ? 'show' : ''}`}>
+            Seleccionamos ingredientes nobles, procesos sostenibles y una experiencia cuidada para llegar con
+            frescura a tu mesa.
+          </p>
+          <div className={`fade-up flex flex-wrap gap-4 ${visible ? 'show' : ''}`}>
+            <button
+              onClick={onCtaClick}
+              className="rounded-full bg-brand-800 px-7 py-3 text-sm font-semibold uppercase tracking-[0.25em] text-white shadow-lg shadow-brand-900/20 transition hover:-translate-y-0.5 hover:bg-brand-700"
+            >
+              Ver productos
+            </button>
+            <button className="rounded-full border border-brand-200 px-6 py-3 text-sm font-semibold text-brand-700">
+              Nuestra historia
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-6 text-sm text-brand-600">
+            <div>
+              <p className="font-semibold text-brand-900">+14</p>
+              <p>Años de tradición</p>
+            </div>
+            <div>
+              <p className="font-semibold text-brand-900">100%</p>
+              <p>Producción local</p>
+            </div>
+            <div>
+              <p className="font-semibold text-brand-900">48h</p>
+              <p>Entrega express</p>
+            </div>
+          </div>
+        </div>
+        <div className="glass card-shadow rounded-3xl p-6">
+          <div className="flex h-full flex-col justify-between gap-6 rounded-2xl border border-brand-100 bg-white p-6">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-brand-500">Selección destacada</p>
+              <h2 className="mt-3 font-serif text-2xl text-brand-900">Cajas semanales de temporada</h2>
+              <p className="mt-3 text-sm text-brand-600">
+                Combinamos huevos de libre pastoreo, quesos curados y frutos secos tostados para una despensa
+                premium.
+              </p>
+            </div>
+            <div className="grid gap-3 text-sm text-brand-700">
+              <div className="flex items-center justify-between rounded-xl bg-brand-50 px-4 py-3">
+                <span>Huevos campo (docena)</span>
+                <span className="font-semibold">$6.500</span>
+              </div>
+              <div className="flex items-center justify-between rounded-xl bg-brand-50 px-4 py-3">
+                <span>Queso ahumado (500g)</span>
+                <span className="font-semibold">$9.200</span>
+              </div>
+              <div className="flex items-center justify-between rounded-xl bg-brand-50 px-4 py-3">
+                <span>Nueces tostadas (250g)</span>
+                <span className="font-semibold">$5.300</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function About() {
+  return (
+    <section id="nosotros" className="mx-auto max-w-6xl px-6 py-20">
+      <div className="grid gap-12 md:grid-cols-[0.9fr_1.1fr]">
+        <div>
+          <p className="text-xs uppercase tracking-[0.3em] text-brand-500">Sobre nosotros</p>
+          <h2 className="mt-4 font-serif text-3xl text-brand-900">Una granja boutique, un legado familiar.</h2>
+          <p className="mt-4 text-brand-700">
+            Alma de Granja nace de la pasión por la agricultura consciente. Nuestra producción respeta el ciclo
+            natural y prioriza el bienestar animal para ofrecer alimentos honestos.
+          </p>
+          <p className="mt-4 text-brand-700">
+            Trabajamos con procesos artesanales, cuidando cada detalle desde la recolección hasta la entrega para
+            mantener la frescura y el sabor original.
+          </p>
+        </div>
+        <div className="grid gap-6 md:grid-cols-2">
+          {['Crianza consciente', 'Producción lenta', 'Sabores auténticos', 'Entrega cuidada'].map((item) => (
+            <div key={item} className="rounded-3xl border border-brand-100 bg-white p-6 shadow-sm">
+              <div className="mb-4 h-32 rounded-2xl bg-brand-100" />
+              <h3 className="font-serif text-lg text-brand-900">{item}</h3>
+              <p className="mt-2 text-sm text-brand-600">
+                Curamos cada etapa para asegurar un producto final premium y responsable.
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function Products({ products, onAdd, selectedCategory, onCategoryChange }) {
+  const filters = [
+    { label: 'Todos', value: 'todos' },
+    { label: 'Quesos', value: 'quesos' },
+    { label: 'Frutos secos', value: 'frutos_secos' },
+    { label: 'Huevos de campo', value: 'huevos_campo' },
+    { label: 'Otros', value: 'otros' }
+  ]
+
+  const normalizedProducts = useMemo(
+    () =>
+      products.map((product) => ({
+        ...product,
+        normalizedCategory:
+          product.category === 'frutos secos'
+            ? 'frutos_secos'
+            : product.category === 'huevos'
+              ? 'huevos_campo'
+              : product.category
+      })),
+    [products]
+  )
+
+  const visibleProducts = useMemo(() => {
+    if (selectedCategory === 'todos') return normalizedProducts
+    if (selectedCategory === 'otros') {
+      return normalizedProducts.filter(
+        (product) => !['quesos', 'frutos_secos', 'huevos_campo'].includes(product.normalizedCategory)
+      )
+    }
+    return normalizedProducts.filter((product) => product.normalizedCategory === selectedCategory)
+  }, [normalizedProducts, selectedCategory])
+
+  return (
+    <section id="productos" className="bg-white">
+      <div className="mx-auto max-w-6xl px-6 py-20">
+        <div className="flex flex-wrap items-end justify-between gap-6">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-brand-500">Productos</p>
+            <h2 className="mt-3 font-serif text-3xl text-brand-900">Selección fresca y artesanal.</h2>
+          </div>
+          <p className="max-w-md text-sm text-brand-600">
+            Disponibilidad sujeta a temporada. Escríbenos si necesitas una selección personalizada.
+          </p>
+        </div>
+        <div className="mt-8 flex flex-wrap gap-3">
+          {filters.map((filter) => (
+            <button
+              key={filter.value}
+              type="button"
+              onClick={() => onCategoryChange(filter.value)}
+              className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] transition ${
+                selectedCategory === filter.value
+                  ? 'bg-brand-800 text-white shadow-lg shadow-brand-900/15'
+                  : 'border border-brand-200 text-brand-700 hover:bg-brand-50'
+              }`}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
+        <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          {visibleProducts.map((product) => (
+            <div
+              key={product.id}
+              className="group overflow-hidden rounded-3xl border border-brand-100 bg-brand-50 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-900/10"
+            >
+              <div className="h-44 w-full bg-brand-100">
+                {product.imageUrl ? (
+                  <img
+                    src={product.imageUrl}
+                    alt={product.name}
+                    className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                  />
+                ) : null}
+              </div>
+              <div className="space-y-4 p-6">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-brand-500">
+                    {product.normalizedCategory === 'huevos_campo'
+                      ? 'Huevos de campo'
+                      : product.normalizedCategory === 'frutos_secos'
+                        ? 'Frutos secos'
+                        : product.normalizedCategory === 'quesos'
+                          ? 'Quesos'
+                          : 'Otros'}
+                  </p>
+                  <h3 className="font-serif text-xl text-brand-900">{product.name}</h3>
+                </div>
+                <div className="flex items-center justify-between text-sm text-brand-600">
+                  <span>{product.unit}</span>
+                  <span className="text-lg font-semibold text-brand-900">${product.price}</span>
+                </div>
+                <button
+                  onClick={() => onAdd(product)}
+                  className="w-full rounded-full bg-brand-800 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-brand-900/10 transition hover:-translate-y-0.5 hover:bg-brand-700"
+                >
+                  Añadir
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function Contact() {
+  return (
+    <section id="contacto" className="mx-auto max-w-6xl px-6 py-20">
+      <div className="rounded-3xl bg-brand-800 p-10 text-white md:p-14">
+        <div className="grid gap-6 md:grid-cols-[1.2fr_0.8fr]">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-brand-200">Contacto</p>
+            <h2 className="mt-3 font-serif text-3xl">Hablemos por WhatsApp.</h2>
+            <p className="mt-3 text-sm text-brand-100">
+              Nuestro equipo responde en minutos. Comparte tu pedido o solicita asesoría personalizada.
+            </p>
+            <div className="mt-6 space-y-2 text-sm text-brand-100">
+              <p className="font-semibold text-white">+56 9 5808 6762</p>
+              <p>Horario de atención: Lun - Sáb, 9:00 a 19:00 hrs.</p>
+              <p>Entregas programadas con 24-48h de anticipación.</p>
+            </div>
+          </div>
+          <div className="flex items-center md:justify-end">
+            <a
+              href="https://wa.me/56958086762?text=Hola%20Alma%20de%20Granja%2C%20quisiera%20hacer%20un%20pedido."
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-brand-800 shadow-lg shadow-brand-900/20 transition hover:-translate-y-0.5"
+            >
+              Hablar por WhatsApp
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function Footer() {
+  return (
+    <footer className="border-t border-brand-100 bg-white py-8">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 text-sm text-brand-600">
+        <p>© 2024 Alma de Granja. Todos los derechos reservados.</p>
+        <div className="flex gap-4">
+          <a href="#inicio" className="hover:text-brand-900">Inicio</a>
+          <a href="#productos" className="hover:text-brand-900">Productos</a>
+          <a href="#contacto" className="hover:text-brand-900">Contacto</a>
+        </div>
+      </div>
+    </footer>
+  )
+}
+
+function CartDrawer({ open, onClose, items, total, onUpdate, onRemove }) {
+  const message = useMemo(() => {
+    const lines = items.map((item) => `- ${item.name} x${item.quantity} — $${item.quantity * item.price}`)
+    return `Pedido Alma de Granja:\n${lines.join('\n')}\nTotal: $${total}`
+  }, [items, total])
+
+  const whatsappUrl = `https://wa.me/56958086762?text=${encodeURIComponent(message)}`
+
+  useEffect(() => {
+    if (!open) return
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        onClose()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [open, onClose])
+
+  return (
+    <div className={`fixed inset-0 z-50 ${open ? '' : 'pointer-events-none'}`}>
+      <div
+        className={`absolute inset-0 bg-black/40 transition-opacity ${open ? 'opacity-100' : 'opacity-0'}`}
+        onClick={onClose}
+      />
+      <aside
+        className={`absolute right-0 top-0 h-full w-full max-w-md transform bg-white shadow-2xl transition-transform ${
+          open ? 'translate-x-0' : 'translate-x-full'
+        }`}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="flex h-full flex-col">
+          <div className="flex items-center justify-between border-b border-brand-100 px-6 py-5">
+            <div>
+              <p className="text-xs uppercase tracking-[0.3em] text-brand-500">Tu carrito</p>
+              <h3 className="font-serif text-xl text-brand-900">Resumen de pedido</h3>
+            </div>
+            <button
+              onClick={onClose}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-brand-100 text-lg text-brand-500"
+              aria-label="Cerrar carrito"
+            >
+              ×
+            </button>
+          </div>
+          <div className="flex-1 space-y-4 overflow-y-auto px-6 py-6">
+            {items.length === 0 ? (
+              <p className="text-sm text-brand-600">Tu carrito está vacío.</p>
+            ) : (
+              items.map((item) => (
+                <div key={item.id} className="rounded-2xl border border-brand-100 bg-brand-50 p-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="font-semibold text-brand-900">{item.name}</p>
+                      <p className="text-xs text-brand-500">{item.unit}</p>
+                    </div>
+                    <button onClick={() => onRemove(item.id)} className="text-xs text-brand-500">Eliminar</button>
+                  </div>
+                  <div className="mt-4 flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => onUpdate(item.id, -1)}
+                        className="h-8 w-8 rounded-full border border-brand-200"
+                      >
+                        -
+                      </button>
+                      <span className="min-w-[24px] text-center">{item.quantity}</span>
+                      <button
+                        onClick={() => onUpdate(item.id, 1)}
+                        className="h-8 w-8 rounded-full border border-brand-200"
+                      >
+                        +
+                      </button>
+                    </div>
+                    <span className="font-semibold text-brand-900">${item.quantity * item.price}</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          <div className="border-t border-brand-100 px-6 py-5">
+            <div className="flex items-center justify-between text-sm text-brand-600">
+              <span>Total</span>
+              <span className="text-lg font-semibold text-brand-900">${total}</span>
+            </div>
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-4 block w-full rounded-full bg-brand-800 px-4 py-3 text-center text-sm font-semibold text-white"
+            >
+              Enviar pedido por WhatsApp
+            </a>
+          </div>
+        </div>
+      </aside>
+    </div>
+  )
+}
+
+function AdminLogin() {
+  const navigate = useNavigate()
+  const [form, setForm] = useState({ username: '', password: '' })
+  const [error, setError] = useState('')
+
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+    setError('')
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(form)
+    })
+    if (res.ok) {
+      navigate('/admin/dashboard')
+    } else {
+      const data = await res.json().catch(() => ({}))
+      setError(data.message || 'Credenciales inválidas')
+    }
+  }
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-brand-50 px-6">
+      <div className="w-full max-w-md rounded-3xl border border-brand-100 bg-white p-8 shadow-sm">
+        <h1 className="font-serif text-2xl text-brand-900">Acceso administrador</h1>
+        <p className="mt-2 text-sm text-brand-600">Ingresa tus credenciales para gestionar productos.</p>
+        <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
+          <div>
+            <label className="text-xs uppercase tracking-[0.2em] text-brand-500">Usuario</label>
+            <input
+              type="text"
+              value={form.username}
+              onChange={(event) => setForm({ ...form, username: event.target.value })}
+              className="mt-2 w-full rounded-full border border-brand-200 px-4 py-2 text-sm"
+              required
+            />
+          </div>
+          <div>
+            <label className="text-xs uppercase tracking-[0.2em] text-brand-500">Contraseña</label>
+            <input
+              type="password"
+              value={form.password}
+              onChange={(event) => setForm({ ...form, password: event.target.value })}
+              className="mt-2 w-full rounded-full border border-brand-200 px-4 py-2 text-sm"
+              required
+            />
+          </div>
+          {error ? <p className="text-sm text-red-600">{error}</p> : null}
+          <button className="w-full rounded-full bg-brand-800 px-4 py-3 text-sm font-semibold text-white">
+            Entrar
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+function AdminDashboard() {
+  const navigate = useNavigate()
+  const [products, setProducts] = useState([])
+  const [form, setForm] = useState(initialForm)
+  const [editingId, setEditingId] = useState(null)
+  const [error, setError] = useState('')
+
+  const loadProducts = async () => {
+    const res = await fetch('/api/admin/products')
+    if (res.status === 401) {
+      navigate('/admin')
+      return
+    }
+    const data = await res.json()
+    setProducts(data)
+  }
+
+  useEffect(() => {
+    loadProducts()
+  }, [])
+
+  const resetForm = () => {
+    setForm(initialForm)
+    setEditingId(null)
+  }
+
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+    setError('')
+    const payload = {
+      ...form,
+      price: Number(form.price)
+    }
+    const res = await fetch(`/api/admin/products${editingId ? `/${editingId}` : ''}`, {
+      method: editingId ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      setError(data.message || 'No se pudo guardar')
+      return
+    }
+    await loadProducts()
+    resetForm()
+  }
+
+  const handleEdit = (product) => {
+    setEditingId(product.id)
+    setForm({
+      name: product.name,
+      category: product.category,
+      price: product.price,
+      unit: product.unit,
+      imageUrl: product.imageUrl || '',
+      active: product.active
+    })
+  }
+
+  const handleDelete = async (id) => {
+    await fetch(`/api/admin/products/${id}`, { method: 'DELETE' })
+    await loadProducts()
+  }
+
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' })
+    navigate('/admin')
+  }
+
+  return (
+    <div className="min-h-screen bg-brand-50">
+      <div className="mx-auto max-w-6xl px-6 py-12">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-brand-500">Admin</p>
+            <h1 className="font-serif text-3xl text-brand-900">Panel de productos</h1>
+          </div>
+          <button onClick={handleLogout} className="rounded-full border border-brand-200 px-4 py-2 text-sm">
+            Cerrar sesión
+          </button>
+        </div>
+
+        <div className="mt-10 grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="rounded-3xl border border-brand-100 bg-white p-6 shadow-sm">
+            <h2 className="font-serif text-xl text-brand-900">{editingId ? 'Editar' : 'Nuevo'} producto</h2>
+            <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
+              <div>
+                <label className="text-xs uppercase tracking-[0.2em] text-brand-500">Nombre</label>
+                <input
+                  value={form.name}
+                  onChange={(event) => setForm({ ...form, name: event.target.value })}
+                  className="mt-2 w-full rounded-full border border-brand-200 px-4 py-2 text-sm"
+                  required
+                />
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="text-xs uppercase tracking-[0.2em] text-brand-500">Categoría</label>
+                  <select
+                    value={form.category}
+                    onChange={(event) => setForm({ ...form, category: event.target.value })}
+                    className="mt-2 w-full rounded-full border border-brand-200 px-4 py-2 text-sm"
+                  >
+                    {categories.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs uppercase tracking-[0.2em] text-brand-500">Precio</label>
+                  <input
+                    type="number"
+                    value={form.price}
+                    onChange={(event) => setForm({ ...form, price: event.target.value })}
+                    className="mt-2 w-full rounded-full border border-brand-200 px-4 py-2 text-sm"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="text-xs uppercase tracking-[0.2em] text-brand-500">Unidad</label>
+                  <input
+                    value={form.unit}
+                    onChange={(event) => setForm({ ...form, unit: event.target.value })}
+                    className="mt-2 w-full rounded-full border border-brand-200 px-4 py-2 text-sm"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-xs uppercase tracking-[0.2em] text-brand-500">Estado</label>
+                  <select
+                    value={form.active ? 'true' : 'false'}
+                    onChange={(event) => setForm({ ...form, active: event.target.value === 'true' })}
+                    className="mt-2 w-full rounded-full border border-brand-200 px-4 py-2 text-sm"
+                  >
+                    <option value="true">Activo</option>
+                    <option value="false">Inactivo</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="text-xs uppercase tracking-[0.2em] text-brand-500">Imagen (URL)</label>
+                <input
+                  value={form.imageUrl}
+                  onChange={(event) => setForm({ ...form, imageUrl: event.target.value })}
+                  className="mt-2 w-full rounded-full border border-brand-200 px-4 py-2 text-sm"
+                  placeholder="https://res.cloudinary.com/..."
+                />
+              </div>
+              {form.imageUrl ? (
+                <div className="overflow-hidden rounded-2xl border border-brand-100">
+                  <img src={form.imageUrl} alt="preview" className="h-40 w-full object-cover" />
+                </div>
+              ) : null}
+              {error ? <p className="text-sm text-red-600">{error}</p> : null}
+              <div className="flex flex-wrap gap-3">
+                <button className="rounded-full bg-brand-800 px-6 py-3 text-sm font-semibold text-white">
+                  {editingId ? 'Actualizar' : 'Crear'}
+                </button>
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="rounded-full border border-brand-200 px-6 py-3 text-sm"
+                >
+                  Limpiar
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div className="space-y-4">
+            {products.map((product) => (
+              <div key={product.id} className="flex flex-wrap items-center gap-4 rounded-3xl border border-brand-100 bg-white p-5 shadow-sm">
+                <div className="h-20 w-20 overflow-hidden rounded-2xl bg-brand-100">
+                  {product.imageUrl ? (
+                    <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover" />
+                  ) : null}
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs uppercase tracking-[0.2em] text-brand-500">{product.category}</p>
+                  <h3 className="font-serif text-lg text-brand-900">{product.name}</h3>
+                  <p className="text-sm text-brand-600">
+                    ${product.price} · {product.unit} · {product.active ? 'Activo' : 'Inactivo'}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleEdit(product)}
+                    className="rounded-full border border-brand-200 px-4 py-2 text-xs"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => handleDelete(product.id)}
+                    className="rounded-full border border-red-200 px-4 py-2 text-xs text-red-600"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const socialLinks = {
+  whatsapp: 'https://wa.me/56958086762',
+  instagram: 'https://instagram.com/almadegranja',
+  facebook: 'https://facebook.com/almadegranja'
+}
+
+function FloatingButtons({ drawerOpen }) {
+  return (
+    <div
+      className={`fixed bottom-6 right-6 z-40 flex flex-col gap-3 transition-transform ${
+        drawerOpen ? 'md:-translate-x-72' : ''
+      }`}
+    >
+      {[
+        { label: 'WhatsApp', href: socialLinks.whatsapp, bg: 'bg-green-500' },
+        { label: 'Instagram', href: socialLinks.instagram, bg: 'bg-pink-500' },
+        { label: 'Facebook', href: socialLinks.facebook, bg: 'bg-blue-600' }
+      ].map((item) => (
+        <a
+          key={item.label}
+          href={item.href}
+          target="_blank"
+          rel="noreferrer"
+          className={`group relative flex h-12 w-12 items-center justify-center rounded-full text-white shadow-lg shadow-brand-900/20 transition hover:-translate-y-0.5 ${item.bg}`}
+          aria-label={item.label}
+        >
+          <span className="text-xs font-semibold">{item.label.slice(0, 2)}</span>
+          <span className="pointer-events-none absolute right-full mr-3 hidden rounded-full bg-brand-900 px-3 py-1 text-xs text-white shadow-lg group-hover:block">
+            {item.label}
+          </span>
+        </a>
+      ))}
+    </div>
+  )
+}
+
+export default App
