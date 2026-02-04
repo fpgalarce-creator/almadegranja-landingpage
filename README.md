@@ -1,4 +1,4 @@
-# Alma de Granja
+# Alma de Granja v2
 
 Monorepo con frontend (Vite + React + Tailwind) y backend (Node + Express).
 
