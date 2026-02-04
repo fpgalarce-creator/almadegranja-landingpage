@@ -1,11 +1,6 @@
 {
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/server/index.js" },
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
-}
-  "routes": [
-    { "src": "/api/(.*)", "dest": "server/index.js" },
-    { "src": "/(.*)", "dest": "/client/dist/index.html" }
+    { "source": "/(.*)", "destination": "/client/dist/index.html" }
   ]
 }
