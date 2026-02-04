@@ -1,56 +1,62 @@
 [
   {
     "id": "p1",
-    "name": "Huevos de libre pastoreo",
-    "category": "huevos",
+    "category": "huevos_campo",
+    "title": "Huevos de libre pastoreo",
+    "description": "Docena de huevos frescos de gallinas en libre pastoreo.",
     "price": 6500,
     "unit": "docena",
     "imageUrl": "https://images.unsplash.com/photo-1518569656558-1f25e69d93d7?auto=format&fit=crop&w=800&q=80",
-    "active": true
+    "createdAt": "2024-01-10T10:00:00.000Z"
   },
   {
     "id": "p2",
-    "name": "Queso mantecoso artesanal",
     "category": "quesos",
+    "title": "Queso mantecoso artesanal",
+    "description": "Queso suave y cremoso, ideal para tablas y sándwiches.",
     "price": 9200,
     "unit": "500g",
     "imageUrl": "https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=800&q=80",
-    "active": true
+    "createdAt": "2024-01-12T10:00:00.000Z"
   },
   {
     "id": "p3",
-    "name": "Queso de cabra curado",
     "category": "quesos",
+    "title": "Queso de cabra curado",
+    "description": "Curado con notas intensas, textura firme y aroma artesanal.",
     "price": 8800,
     "unit": "350g",
     "imageUrl": "https://images.unsplash.com/photo-1452195100486-9cc805987862?auto=format&fit=crop&w=800&q=80",
-    "active": true
+    "createdAt": "2024-01-14T10:00:00.000Z"
   },
   {
     "id": "p4",
-    "name": "Nueces tostadas",
-    "category": "frutos secos",
+    "category": "frutos_secos",
+    "title": "Nueces tostadas",
+    "description": "Nueces tostadas lentamente con sabor profundo y textura crocante.",
     "price": 5300,
     "unit": "250g",
     "imageUrl": "https://images.unsplash.com/photo-1508747703725-719777637510?auto=format&fit=crop&w=800&q=80",
-    "active": true
+    "createdAt": "2024-01-16T10:00:00.000Z"
   },
   {
     "id": "p5",
-    "name": "Almendras naturales",
-    "category": "frutos secos",
+    "category": "frutos_secos",
+    "title": "Almendras naturales",
+    "description": "Almendras seleccionadas, ideales para snacks o repostería.",
     "price": 4900,
     "unit": "250g",
     "imageUrl": "https://images.unsplash.com/photo-1505576391880-b3f9d713dc4f?auto=format&fit=crop&w=800&q=80",
-    "active": true
+    "createdAt": "2024-01-18T10:00:00.000Z"
   },
   {
     "id": "p6",
-    "name": "Huevos XL",
-    "category": "huevos",
+    "category": "huevos_campo",
+    "title": "Huevos XL",
+    "description": "Huevos tamaño XL con yema cremosa para recetas especiales.",
     "price": 7200,
     "unit": "docena",
     "imageUrl": "https://images.unsplash.com/photo-1502741338009-cac2772e18bc?auto=format&fit=crop&w=800&q=80",
-    "active": true
+    "createdAt": "2024-01-20T10:00:00.000Z"
   }
 ]

@@ -39,6 +39,10 @@ Copia `/server/.env.example` a `/server/.env` y ajusta valores.
 - `ADMIN_PASS`
 - `JWT_SECRET`
 - `CLIENT_ORIGIN`
+- `CLOUDINARY_CLOUD_NAME`
+- `CLOUDINARY_API_KEY`
+- `CLOUDINARY_API_SECRET`
+- `CLOUDINARY_FOLDER` (opcional)
 
 ## WhatsApp pedidos
 
@@ -60,8 +64,13 @@ https://wa.me/56958086762?text=MENSAJE_URL_ENCODED
 
 En el panel admin pega la URL pública (Cloudinary u otra CDN) para ver el preview. No hay upload aún.
 
+## Cloudinary (placeholder)
+
+El backend expone `POST /api/admin/cloudinary/signature` (protegido) para obtener `signature` y `timestamp` cuando
+se implemente upload directo.
+
 ## Deploy (Vercel)
 
 - Frontend: carpeta `/client`
 - Backend: despliega `/server` como proyecto Node
-- Configura las variables de entorno en el dashboard.
+- Configura las variables de entorno en el dashboard (ADMIN_USER, ADMIN_PASS, JWT_SECRET, CLOUDINARY_*).
