@@ -1,27 +1,34 @@
-import { Routes, Route, Link, useNavigate } from 'react-router-dom'
+import { Routes, Route, Link } from 'react-router-dom'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 const initialForm = {
-  name: '',
-  category: 'huevos',
+  title: '',
+  description: '',
+  category: 'quesos',
   price: '',
   unit: '',
-  imageUrl: '',
-  active: true
+  imageUrl: ''
 }
 
 const categories = [
-  { value: 'huevos', label: 'Huevos' },
   { value: 'quesos', label: 'Quesos' },
-  { value: 'frutos secos', label: 'Frutos secos' }
+  { value: 'frutos_secos', label: 'Frutos secos' },
+  { value: 'huevos_campo', label: 'Huevos de campo' },
+  { value: 'otros', label: 'Otros' }
 ]
+
+const categoryLabels = {
+  quesos: 'Quesos',
+  frutos_secos: 'Frutos secos',
+  huevos_campo: 'Huevos de campo',
+  otros: 'Otros'
+}
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="/admin" element={<AdminLogin />} />
-      <Route path="/admin/dashboard" element={<AdminDashboard />} />
+      <Route path="/admin" element={<AdminPage />} />
     </Routes>
   )
 }
@@ -71,10 +78,17 @@ function Home() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState('todos')
 
+  const normalizeProduct = (product) => ({
+    ...product,
+    title: product.title ?? product.name ?? '',
+    description: product.description ?? '',
+    unit: product.unit ?? ''
+  })
+
   useEffect(() => {
     fetch('/api/products')
       .then((res) => res.json())
-      .then((data) => setProducts(data))
+      .then((data) => setProducts(data.map(normalizeProduct)))
       .catch(() => setProducts([]))
   }, [])
 
@@ -82,27 +96,27 @@ function Home() {
     const fallback = [
       {
         id: 'dummy-1',
-        name: 'Mantequilla de campo',
+        title: 'Mantequilla de campo',
+        description: 'Mantequilla suave con notas de crema fresca.',
         category: 'otros',
         price: 4200,
         unit: '250g',
         imageUrl:
-          'https://images.unsplash.com/photo-1481391032119-d89fee407e44?auto=format&fit=crop&w=800&q=80',
-        active: true
+          'https://images.unsplash.com/photo-1481391032119-d89fee407e44?auto=format&fit=crop&w=800&q=80'
       },
       {
         id: 'dummy-2',
-        name: 'Miel orgánica',
+        title: 'Miel orgánica',
+        description: 'Miel floral con aroma intenso y textura sedosa.',
         category: 'otros',
         price: 5600,
         unit: '350g',
         imageUrl:
-          'https://images.unsplash.com/photo-1471943311424-646960669fbc?auto=format&fit=crop&w=800&q=80',
-        active: true
+          'https://images.unsplash.com/photo-1471943311424-646960669fbc?auto=format&fit=crop&w=800&q=80'
       }
     ]
     const list = products.length >= 8 ? products : [...products, ...fallback]
-    return list.slice(0, 12)
+    return list.slice(0, 12).map(normalizeProduct)
   }, [products])
 
   const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0)
@@ -490,6 +504,12 @@ function Products({ products, onAdd, onDecrement, cartItems, selectedCategory, o
             ? 'frutos_secos'
             : product.category === 'huevos'
               ? 'huevos_campo'
+              : product.category === 'huevos de campo'
+                ? 'huevos_campo'
+                : product.category === 'frutos_secos'
+                  ? 'frutos_secos'
+                  : product.category === 'huevos_campo'
+                    ? 'huevos_campo'
               : product.category
       })),
     [products]
@@ -550,7 +570,7 @@ function Products({ products, onAdd, onDecrement, cartItems, selectedCategory, o
                 {product.imageUrl ? (
                   <img
                     src={product.imageUrl}
-                    alt={product.name}
+                    alt={product.title}
                     className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                   />
                 ) : null}
@@ -558,15 +578,9 @@ function Products({ products, onAdd, onDecrement, cartItems, selectedCategory, o
               <div className="space-y-4 p-6">
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-brand-500">
-                    {product.normalizedCategory === 'huevos_campo'
-                      ? 'Huevos de campo'
-                      : product.normalizedCategory === 'frutos_secos'
-                        ? 'Frutos secos'
-                        : product.normalizedCategory === 'quesos'
-                          ? 'Quesos'
-                          : 'Otros'}
+                    {categoryLabels[product.normalizedCategory] ?? 'Otros'}
                   </p>
-                  <h3 className="font-serif text-xl text-brand-900">{product.name}</h3>
+                  <h3 className="font-serif text-xl text-brand-900">{product.title}</h3>
                 </div>
                 <div className="flex items-center justify-between text-sm text-brand-600">
                   <span>{product.unit}</span>
@@ -577,7 +591,7 @@ function Products({ products, onAdd, onDecrement, cartItems, selectedCategory, o
                     type="button"
                     onClick={() => onDecrement(product.id)}
                     className="flex h-8 w-8 items-center justify-center rounded-full border border-brand-200 text-brand-700 transition hover:bg-brand-50"
-                    aria-label={`Reducir ${product.name}`}
+                    aria-label={`Reducir ${product.title}`}
                   >
                     -
                   </button>
@@ -588,7 +602,7 @@ function Products({ products, onAdd, onDecrement, cartItems, selectedCategory, o
                     type="button"
                     onClick={() => onAdd(product)}
                     className="flex h-8 w-8 items-center justify-center rounded-full border border-brand-200 text-brand-700 transition hover:bg-brand-50"
-                    aria-label={`Agregar ${product.name}`}
+                    aria-label={`Agregar ${product.title}`}
                   >
                     +
                   </button>
@@ -652,7 +666,7 @@ function Footer() {
 
 function CartDrawer({ open, onClose, items, total, onUpdate, onRemove }) {
   const message = useMemo(() => {
-    const lines = items.map((item) => `- ${item.name} x${item.quantity} — $${item.quantity * item.price}`)
+    const lines = items.map((item) => `- ${item.title} x${item.quantity} — $${item.quantity * item.price}`)
     return `Pedido Alma de Granja:\n${lines.join('\n')}\nTotal: $${total}`
   }, [items, total])
 
@@ -703,7 +717,7 @@ function CartDrawer({ open, onClose, items, total, onUpdate, onRemove }) {
                 <div key={item.id} className="rounded-2xl border border-brand-100 bg-brand-50 p-4">
                   <div className="flex items-start justify-between">
                     <div>
-                      <p className="font-semibold text-brand-900">{item.name}</p>
+                      <p className="font-semibold text-brand-900">{item.title}</p>
                       <p className="text-xs text-brand-500">{item.unit}</p>
                     </div>
                     <button onClick={() => onRemove(item.id)} className="text-xs text-brand-500">Eliminar</button>
@@ -750,21 +764,50 @@ function CartDrawer({ open, onClose, items, total, onUpdate, onRemove }) {
   )
 }
 
-function AdminLogin() {
-  const navigate = useNavigate()
+const getStoredToken = () => {
+  if (typeof window === 'undefined') return null
+  return window.localStorage.getItem('admin_token')
+}
+
+const storeToken = (token) => {
+  window.localStorage.setItem('admin_token', token)
+}
+
+const clearToken = () => {
+  window.localStorage.removeItem('admin_token')
+}
+
+function AdminPage() {
+  const [token, setToken] = useState(() => getStoredToken())
+
+  const handleLogout = () => {
+    clearToken()
+    setToken(null)
+  }
+
+  if (!token) {
+    return <AdminLogin onLogin={(newToken) => setToken(newToken)} />
+  }
+
+  return <AdminDashboard token={token} onLogout={handleLogout} />
+}
+
+function AdminLogin({ onLogin }) {
   const [form, setForm] = useState({ username: '', password: '' })
   const [error, setError] = useState('')
 
   const handleSubmit = async (event) => {
     event.preventDefault()
     setError('')
-    const res = await fetch('/api/auth/login', {
+    const res = await fetch('/api/admin/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form)
     })
     if (res.ok) {
-      navigate('/admin/dashboard')
+      const data = await res.json()
+      storeToken(data.token)
+      onLogin(data.token)
     } else {
       const data = await res.json().catch(() => ({}))
       setError(data.message || 'Credenciales inválidas')
@@ -807,21 +850,25 @@ function AdminLogin() {
   )
 }
 
-function AdminDashboard() {
-  const navigate = useNavigate()
+function AdminDashboard({ token, onLogout }) {
   const [products, setProducts] = useState([])
   const [form, setForm] = useState(initialForm)
-  const [editingId, setEditingId] = useState(null)
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(true)
+
+  const authHeaders = {
+    Authorization: `Bearer ${token}`
+  }
 
   const loadProducts = async () => {
-    const res = await fetch('/api/admin/products')
+    const res = await fetch('/api/admin/products', { headers: authHeaders })
     if (res.status === 401) {
-      navigate('/admin')
+      onLogout()
       return
     }
     const data = await res.json()
     setProducts(data)
+    setLoading(false)
   }
 
   useEffect(() => {
@@ -830,7 +877,6 @@ function AdminDashboard() {
 
   const resetForm = () => {
     setForm(initialForm)
-    setEditingId(null)
   }
 
   const handleSubmit = async (event) => {
@@ -840,9 +886,9 @@ function AdminDashboard() {
       ...form,
       price: Number(form.price)
     }
-    const res = await fetch(`/api/admin/products${editingId ? `/${editingId}` : ''}`, {
-      method: editingId ? 'PUT' : 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const res = await fetch('/api/admin/products', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders },
       body: JSON.stringify(payload)
     })
     if (!res.ok) {
@@ -854,26 +900,16 @@ function AdminDashboard() {
     resetForm()
   }
 
-  const handleEdit = (product) => {
-    setEditingId(product.id)
-    setForm({
-      name: product.name,
-      category: product.category,
-      price: product.price,
-      unit: product.unit,
-      imageUrl: product.imageUrl || '',
-      active: product.active
-    })
-  }
-
   const handleDelete = async (id) => {
-    await fetch(`/api/admin/products/${id}`, { method: 'DELETE' })
+    const res = await fetch(`/api/admin/products/${id}`, {
+      method: 'DELETE',
+      headers: authHeaders
+    })
+    if (res.status === 401) {
+      onLogout()
+      return
+    }
     await loadProducts()
-  }
-
-  const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' })
-    navigate('/admin')
   }
 
   return (
@@ -884,21 +920,31 @@ function AdminDashboard() {
             <p className="text-xs uppercase tracking-[0.3em] text-brand-500">Admin</p>
             <h1 className="font-serif text-3xl text-brand-900">Panel de productos</h1>
           </div>
-          <button onClick={handleLogout} className="rounded-full border border-brand-200 px-4 py-2 text-sm">
+          <button onClick={onLogout} className="rounded-full border border-brand-200 px-4 py-2 text-sm">
             Cerrar sesión
           </button>
         </div>
 
         <div className="mt-10 grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="rounded-3xl border border-brand-100 bg-white p-6 shadow-sm">
-            <h2 className="font-serif text-xl text-brand-900">{editingId ? 'Editar' : 'Nuevo'} producto</h2>
+            <h2 className="font-serif text-xl text-brand-900">Nuevo producto</h2>
             <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
               <div>
-                <label className="text-xs uppercase tracking-[0.2em] text-brand-500">Nombre</label>
+                <label className="text-xs uppercase tracking-[0.2em] text-brand-500">Título</label>
                 <input
-                  value={form.name}
-                  onChange={(event) => setForm({ ...form, name: event.target.value })}
+                  value={form.title}
+                  onChange={(event) => setForm({ ...form, title: event.target.value })}
                   className="mt-2 w-full rounded-full border border-brand-200 px-4 py-2 text-sm"
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-xs uppercase tracking-[0.2em] text-brand-500">Descripción</label>
+                <textarea
+                  value={form.description}
+                  onChange={(event) => setForm({ ...form, description: event.target.value })}
+                  className="mt-2 w-full rounded-3xl border border-brand-200 px-4 py-3 text-sm"
+                  rows={3}
                   required
                 />
               </div>
@@ -930,34 +976,24 @@ function AdminDashboard() {
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <label className="text-xs uppercase tracking-[0.2em] text-brand-500">Unidad</label>
+                  <label className="text-xs uppercase tracking-[0.2em] text-brand-500">Unidad (opcional)</label>
                   <input
                     value={form.unit}
                     onChange={(event) => setForm({ ...form, unit: event.target.value })}
                     className="mt-2 w-full rounded-full border border-brand-200 px-4 py-2 text-sm"
-                    required
+                    placeholder="250g, docena..."
                   />
                 </div>
                 <div>
-                  <label className="text-xs uppercase tracking-[0.2em] text-brand-500">Estado</label>
-                  <select
-                    value={form.active ? 'true' : 'false'}
-                    onChange={(event) => setForm({ ...form, active: event.target.value === 'true' })}
+                  <label className="text-xs uppercase tracking-[0.2em] text-brand-500">Imagen (URL)</label>
+                  <input
+                    value={form.imageUrl}
+                    onChange={(event) => setForm({ ...form, imageUrl: event.target.value })}
                     className="mt-2 w-full rounded-full border border-brand-200 px-4 py-2 text-sm"
-                  >
-                    <option value="true">Activo</option>
-                    <option value="false">Inactivo</option>
-                  </select>
+                    placeholder="https://res.cloudinary.com/..."
+                  />
+                  <p className="mt-2 text-xs text-brand-500">Pegar URL de Cloudinary.</p>
                 </div>
-              </div>
-              <div>
-                <label className="text-xs uppercase tracking-[0.2em] text-brand-500">Imagen (URL)</label>
-                <input
-                  value={form.imageUrl}
-                  onChange={(event) => setForm({ ...form, imageUrl: event.target.value })}
-                  className="mt-2 w-full rounded-full border border-brand-200 px-4 py-2 text-sm"
-                  placeholder="https://res.cloudinary.com/..."
-                />
               </div>
               {form.imageUrl ? (
                 <div className="overflow-hidden rounded-2xl border border-brand-100">
@@ -967,7 +1003,7 @@ function AdminDashboard() {
               {error ? <p className="text-sm text-red-600">{error}</p> : null}
               <div className="flex flex-wrap gap-3">
                 <button className="rounded-full bg-brand-800 px-6 py-3 text-sm font-semibold text-white">
-                  {editingId ? 'Actualizar' : 'Crear'}
+                  Crear
                 </button>
                 <button
                   type="button"
@@ -981,36 +1017,45 @@ function AdminDashboard() {
           </div>
 
           <div className="space-y-4">
-            {products.map((product) => (
-              <div key={product.id} className="flex flex-wrap items-center gap-4 rounded-3xl border border-brand-100 bg-white p-5 shadow-sm">
-                <div className="h-20 w-20 overflow-hidden rounded-2xl bg-brand-100">
-                  {product.imageUrl ? (
-                    <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover" />
-                  ) : null}
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs uppercase tracking-[0.2em] text-brand-500">{product.category}</p>
-                  <h3 className="font-serif text-lg text-brand-900">{product.name}</h3>
-                  <p className="text-sm text-brand-600">
-                    ${product.price} · {product.unit} · {product.active ? 'Activo' : 'Inactivo'}
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleEdit(product)}
-                    className="rounded-full border border-brand-200 px-4 py-2 text-xs"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => handleDelete(product.id)}
-                    className="rounded-full border border-red-200 px-4 py-2 text-xs text-red-600"
-                  >
-                    Eliminar
-                  </button>
-                </div>
+            {loading ? (
+              <div className="rounded-3xl border border-brand-100 bg-white p-6 text-sm text-brand-600 shadow-sm">
+                Cargando productos...
               </div>
-            ))}
+            ) : products.length === 0 ? (
+              <div className="rounded-3xl border border-brand-100 bg-white p-6 text-sm text-brand-600 shadow-sm">
+                No hay productos cargados.
+              </div>
+            ) : (
+              products.map((product) => (
+                <div
+                  key={product.id}
+                  className="flex flex-wrap items-center gap-4 rounded-3xl border border-brand-100 bg-white p-5 shadow-sm"
+                >
+                  <div className="h-20 w-20 overflow-hidden rounded-2xl bg-brand-100">
+                    {product.imageUrl ? (
+                      <img src={product.imageUrl} alt={product.title} className="h-full w-full object-cover" />
+                    ) : null}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs uppercase tracking-[0.2em] text-brand-500">
+                      {categoryLabels[product.category] ?? product.category}
+                    </p>
+                    <h3 className="font-serif text-lg text-brand-900">{product.title}</h3>
+                    <p className="text-sm text-brand-600">
+                      ${product.price} · {product.unit || 'Sin unidad'}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleDelete(product.id)}
+                      className="rounded-full border border-red-200 px-4 py-2 text-xs text-red-600"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
