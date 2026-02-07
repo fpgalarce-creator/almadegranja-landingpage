@@ -484,7 +484,7 @@ function Hero({ onProductsClick, onNewsClick }) {
           <h1
             className={`fade-up font-serif text-4xl font-semibold text-white md:text-5xl ${visible ? 'show' : ''}`}
           >
-            Sabores artesanales desde el corazón de nuestra granja.
+            Sabores artesanales desde el alma de nuestra granja.
           </h1>
 
           <p className={`fade-up text-lg text-white/85 ${visible ? 'show' : ''}`}>
@@ -509,8 +509,8 @@ function Hero({ onProductsClick, onNewsClick }) {
           </div>
 
           <div className={`fade-up flex justify-center ${visible ? 'show' : ''}`}>
-            <p className="rounded-full border border-brand-800/40 bg-white/20 px-6 py-3 text-center text-sm font-semibold text-brand-100 backdrop-blur-sm">
-              Despachamos en San Francisco de Mostazal, Graneros, Rancagua y Machalí.
+            <p className="rounded-full border border-orange-400/40 bg-black/30 px-6 py-3 text-center text-sm font-semibold text-orange-400 shadow-lg shadow-orange-500/20 backdrop-blur-sm animate-pulse motion-reduce:animate-none">
+              Despachamos en San Francisco de Mostazal, Graneros, Rancagua y Machalí por compras sobre $20.000
             </p>
           </div>
         </div>
@@ -805,22 +805,28 @@ function Footer() {
 
 function CartDrawer({ open, onClose, items, total, onUpdate, onRemove }) {
   const [customerName, setCustomerName] = useState('')
+  const [customerCity, setCustomerCity] = useState('')
   const [deliveryAddress, setDeliveryAddress] = useState('')
   const [orderComment, setOrderComment] = useState('')
 
-  const isOrderValid = customerName.trim().length > 0 && deliveryAddress.trim().length > 0
+  const isOrderValid =
+    customerName.trim().length > 0 &&
+    customerCity.trim().length > 0 &&
+    deliveryAddress.trim().length > 0
   const shippingLine = total >= 20000 ? 'Despacho: GRATIS (sobre $20.000)' : 'Despacho: por coordinar'
 
   const message = useMemo(() => {
-    const trimmedName = customerName.trim() || 'Sin nombre'
-    const trimmedAddress = deliveryAddress.trim() || 'Sin dirección'
-    const trimmedComment = orderComment.trim() || 'Sin comentario'
+    const trimmedName = customerName.trim()
+    const trimmedCity = customerCity.trim()
+    const trimmedAddress = deliveryAddress.trim()
+    const trimmedComment = orderComment.trim()
     const lines = items.map((item) => `- ${item.title} x${item.quantity} — $${item.quantity * item.price}`)
     return [
       'Pedido Alma de Granja',
       `Nombre: ${trimmedName}`,
+      `Ciudad/Pueblo: ${trimmedCity}`,
       `Dirección: ${trimmedAddress}`,
-      `Comentario: ${trimmedComment}`,
+      trimmedComment ? `Comentario: ${trimmedComment}` : '',
       '',
       lines.join('\n'),
       `Total: $${total}`,
@@ -828,7 +834,7 @@ function CartDrawer({ open, onClose, items, total, onUpdate, onRemove }) {
     ]
       .filter(Boolean)
       .join('\n')
-  }, [customerName, deliveryAddress, orderComment, items, total, shippingLine])
+  }, [customerName, customerCity, deliveryAddress, orderComment, items, total, shippingLine])
 
   const whatsappUrl = `https://wa.me/56958086762?text=${encodeURIComponent(message)}`
 
@@ -855,7 +861,7 @@ function CartDrawer({ open, onClose, items, total, onUpdate, onRemove }) {
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex h-full flex-col">
-          <div className="flex items-center justify-between border-b border-brand-100 px-6 py-5">
+          <div className="flex items-center justify-between border-b border-brand-100 px-6 py-4">
             <div>
               <p className="text-xs uppercase tracking-[0.3em] text-brand-500">Tu carrito</p>
               <h3 className="font-serif text-xl text-brand-900">Resumen de pedido</h3>
@@ -868,7 +874,7 @@ function CartDrawer({ open, onClose, items, total, onUpdate, onRemove }) {
               ×
             </button>
           </div>
-          <div className="flex-1 space-y-4 overflow-y-auto px-6 py-6">
+          <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
             {items.length === 0 ? (
               <p className="text-sm text-brand-600">Tu carrito está vacío.</p>
             ) : (
@@ -903,7 +909,7 @@ function CartDrawer({ open, onClose, items, total, onUpdate, onRemove }) {
               ))
             )}
           </div>
-          <div className="border-t border-brand-100 px-6 py-5">
+          <div className="border-t border-brand-100 px-6 py-4">
             <div className="flex items-center justify-between text-sm text-brand-600">
               <span>Total</span>
               <span className="text-lg font-semibold text-brand-900">${total}</span>
@@ -924,7 +930,19 @@ function CartDrawer({ open, onClose, items, total, onUpdate, onRemove }) {
               </div>
               <div>
                 <label className="text-xs uppercase tracking-[0.2em] text-brand-500">
-                  Dirección para despacho
+                  Ciudad / Pueblo
+                </label>
+                <input
+                  type="text"
+                  value={customerCity}
+                  onChange={(event) => setCustomerCity(event.target.value)}
+                  className="mt-2 w-full rounded-full border border-brand-200 px-4 py-2 text-sm text-brand-900"
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-xs uppercase tracking-[0.2em] text-brand-500">
+                  Dirección (calle/pasaje + número)
                 </label>
                 <input
                   type="text"
@@ -948,7 +966,7 @@ function CartDrawer({ open, onClose, items, total, onUpdate, onRemove }) {
             </div>
             {!isOrderValid ? (
               <p className="mt-3 text-xs font-semibold text-orange-500">
-                Completa nombre y dirección para enviar el pedido
+                Completa nombre, ciudad/pueblo y dirección para enviar el pedido
               </p>
             ) : null}
             <a
@@ -962,8 +980,10 @@ function CartDrawer({ open, onClose, items, total, onUpdate, onRemove }) {
               Enviar pedido por WhatsApp
             </a>
             <div className="mt-4 rounded-2xl border border-brand-200 bg-brand-50 p-4 text-sm text-brand-800">
-              <span className="font-semibold text-orange-500">Importante:</span> Solo repartimos en San
-              Francisco de Mostazal, Machalí, Rancagua, Graneros.
+              <p className="font-semibold text-brand-800">
+                <span className="text-orange-500">Importante:</span> Solo repartimos en San Francisco de
+                Mostazal, Machalí, Rancagua, Graneros.
+              </p>
             </div>
           </div>
         </div>
@@ -1090,21 +1110,54 @@ function AdminDashboard({ token, onLogout }) {
   const handleSubmit = async (event) => {
     event.preventDefault()
     setError('')
-    const payload = {
-      ...form,
-      price: Number(form.price),
-      isFeatured: Boolean(form.isFeatured)
-    }
-    const res = await fetch('/api/admin/products', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...authHeaders },
-      body: JSON.stringify(payload)
-    })
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}))
-      setError(data.message || 'No se pudo guardar')
+    const trimmedTitle = form.title.trim()
+    const trimmedDescription = form.description.trim()
+    const trimmedCategory = form.category?.trim()
+    const priceValue = Number(form.price)
+
+    if (!trimmedTitle || !trimmedDescription || !trimmedCategory) {
+      setError('Completa título, descripción y categoría.')
       return
     }
+
+    if (form.price === '' || !Number.isFinite(priceValue)) {
+      setError('Ingresa un precio válido.')
+      return
+    }
+
+    const payload = {
+      ...form,
+      title: trimmedTitle,
+      name: trimmedTitle,
+      description: trimmedDescription,
+      category: trimmedCategory,
+      price: priceValue,
+      isFeatured: Boolean(form.isFeatured)
+    }
+    let res
+    try {
+      res = await fetch('/api/admin/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        body: JSON.stringify(payload)
+      })
+    } catch (error) {
+      setError('No se pudo crear el producto')
+      return
+    }
+
+    if (res.status === 401) {
+      onLogout()
+      return
+    }
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      setError(data.message || 'No se pudo crear el producto')
+      await loadProducts()
+      return
+    }
+
     await loadProducts()
     resetForm()
   }
