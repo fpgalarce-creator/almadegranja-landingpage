@@ -44,6 +44,11 @@ app.get('/api/products', async (req, res) => {
   res.json(products)
 })
 
+app.get('/api/products/featured', async (req, res) => {
+  const products = await readProducts()
+  res.json(products.filter((product) => product.isFeatured))
+})
+
 app.get('/api/admin/products', authMiddleware, async (req, res) => {
   const products = await readProducts()
   res.json(products)
@@ -59,6 +64,7 @@ app.post('/api/admin/products', authMiddleware, async (req, res) => {
     price: Number(req.body.price),
     unit: req.body.unit || '',
     imageUrl: req.body.imageUrl || '',
+    isFeatured: Boolean(req.body.isFeatured),
     createdAt: new Date().toISOString()
   }
   products.push(newProduct)

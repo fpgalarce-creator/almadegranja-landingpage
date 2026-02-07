@@ -15,6 +15,7 @@ const readProducts = async () => {
       price: Number(product.price),
       unit: product.unit ?? '',
       imageUrl: product.imageUrl ?? '',
+      isFeatured: product.isFeatured ?? false,
       createdAt: product.createdAt ?? new Date().toISOString()
     }))
   } catch (error) {

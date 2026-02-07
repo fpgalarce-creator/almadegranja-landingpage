@@ -12,7 +12,8 @@ const initialForm = {
   category: 'quesos',
   price: '',
   unit: '',
-  imageUrl: ''
+  imageUrl: '',
+  isFeatured: false
 }
 
 const categories = [
@@ -79,6 +80,7 @@ function Reveal({ children, delay = 0 }) {
 
 function Home() {
   const [products, setProducts] = useState([])
+  const [featuredProducts, setFeaturedProducts] = useState(null)
   const [cartItems, setCartItems] = useState([])
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState('todos')
@@ -87,7 +89,8 @@ function Home() {
     ...product,
     title: product.title ?? product.name ?? '',
     description: product.description ?? '',
-    unit: product.unit ?? ''
+    unit: product.unit ?? '',
+    isFeatured: product.isFeatured ?? false
   })
 
   useEffect(() => {
@@ -95,6 +98,16 @@ function Home() {
       .then((res) => res.json())
       .then((data) => setProducts(data.map(normalizeProduct)))
       .catch(() => setProducts([]))
+  }, [])
+
+  useEffect(() => {
+    fetch('/api/products/featured')
+      .then((res) => {
+        if (!res.ok) throw new Error('No featured products')
+        return res.json()
+      })
+      .then((data) => setFeaturedProducts(data.map(normalizeProduct)))
+      .catch(() => setFeaturedProducts(null))
   }, [])
 
   const catalog = useMemo(() => {
@@ -158,6 +171,11 @@ function Home() {
     document.getElementById('productos')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
+  const featuredList = useMemo(() => {
+    const source = featuredProducts ?? products.filter((product) => product.isFeatured)
+    return source.slice(0, 3).map(normalizeProduct)
+  }, [featuredProducts, products])
+
   return (
     <div className="min-h-screen bg-brand-50 text-brand-900">
       <Navbar
@@ -166,7 +184,17 @@ function Home() {
         onCategorySelect={handleSelectCategory}
       />
       <main>
-        <Hero onCtaClick={() => document.getElementById('productos')?.scrollIntoView({ behavior: 'smooth' })} />
+        <Hero
+          onProductsClick={() =>
+            document.getElementById('productos')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }
+          onNewsClick={() =>
+            document.getElementById('novedades')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }
+        />
+        <Reveal delay={80}>
+          <FeaturedSection products={featuredList} />
+        </Reveal>
         <Reveal delay={120}>
           <Products
             products={catalog}
@@ -295,6 +323,9 @@ function Navbar({ totalItems, onCartClick, onCategorySelect }) {
           <a href="#nosotros" className="nav-link text-brand-700">
             Nosotros
           </a>
+          <a href="#novedades" className="nav-link text-brand-700">
+            Novedades
+          </a>
           <div
             ref={productsMenuRef}
             className="group relative"
@@ -381,7 +412,7 @@ function Navbar({ totalItems, onCartClick, onCategorySelect }) {
   )
 }
 
-function Hero({ onCtaClick }) {
+function Hero({ onProductsClick, onNewsClick }) {
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
@@ -392,7 +423,7 @@ function Hero({ onCtaClick }) {
   return (
     <section
       id="inicio"
-      className="relative overflow-hidden"
+      className="relative scroll-mt-24 overflow-hidden"
       style={{
         backgroundImage: `linear-gradient(to bottom, rgba(10,10,10,0.45), rgba(10,10,10,0.25)), url(${heroImage})`,
         backgroundSize: 'cover',
@@ -404,13 +435,17 @@ function Hero({ onCtaClick }) {
       {/* degradé abajo para que termine suave */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-brand-50 to-transparent" />
 
-      <div className="mx-auto grid max-w-6xl gap-12 px-6 py-24 md:grid-cols-[1.15fr_0.85fr]">
+      <div className="mx-auto flex max-w-4xl flex-col items-center px-6 py-24 text-center">
         <div className="space-y-6">
-          <p className={`fade-up text-xs uppercase tracking-[0.35em] text-white/80 ${visible ? 'show' : ''}`}>
+          <p
+            className={`fade-up text-xs uppercase tracking-[0.35em] text-white/80 ${visible ? 'show' : ''}`}
+          >
             Productos de granja premium
           </p>
 
-          <h1 className={`fade-up font-serif text-4xl font-semibold text-white md:text-5xl ${visible ? 'show' : ''}`}>
+          <h1
+            className={`fade-up font-serif text-4xl font-semibold text-white md:text-5xl ${visible ? 'show' : ''}`}
+          >
             Sabores artesanales desde el corazón de nuestra granja.
           </h1>
 
@@ -419,20 +454,23 @@ function Hero({ onCtaClick }) {
             frescura a tu mesa.
           </p>
 
-          <div className={`fade-up flex flex-wrap gap-4 ${visible ? 'show' : ''}`}>
+          <div className={`fade-up flex flex-wrap justify-center gap-4 ${visible ? 'show' : ''}`}>
             <button
-              onClick={onCtaClick}
+              onClick={onProductsClick}
               className="rounded-full bg-white px-7 py-3 text-sm font-semibold uppercase tracking-[0.25em] text-brand-900 shadow-lg transition hover:-translate-y-0.5 hover:bg-white/90"
             >
-              Ver productos
+              Productos
             </button>
 
-            <button className="rounded-full border border-white/40 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/15">
-              Nuestra historia
+            <button
+              onClick={onNewsClick}
+              className="rounded-full border border-white/40 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/15"
+            >
+              Novedades
             </button>
           </div>
 
-          <div className="flex flex-wrap gap-6 text-sm text-white/80">
+          <div className="flex flex-wrap justify-center gap-6 text-sm text-white/80">
             <div>
               <p className="font-semibold text-white">+14</p>
               <p>Años de tradición</p>
@@ -447,46 +485,70 @@ function Hero({ onCtaClick }) {
             </div>
           </div>
         </div>
+      </div>
+    </section>
+  )
+}
 
-        {/* card derecha */}
-        <div className="glass card-shadow rounded-3xl p-6">
-          <div className="flex h-full flex-col justify-between gap-6 rounded-2xl border border-white/30 bg-white/70 p-6 backdrop-blur">
-            <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-brand-700/80">Selección destacada</p>
-              <h2 className="mt-3 font-serif text-2xl text-brand-900">Cajas semanales de temporada</h2>
-              <p className="mt-3 text-sm text-brand-700">
-                Combinamos huevos de libre pastoreo, quesos curados y frutos secos tostados para una despensa
-                premium.
-              </p>
-            </div>
-
-            <div className="grid gap-3 text-sm text-brand-700">
-              <div className="flex items-center justify-between rounded-xl bg-white/70 px-4 py-3">
-                <span>Huevos campo (docena)</span>
-                <span className="font-semibold">$6.500</span>
-              </div>
-              <div className="flex items-center justify-between rounded-xl bg-white/70 px-4 py-3">
-                <span>Queso ahumado (500g)</span>
-                <span className="font-semibold">$9.200</span>
-              </div>
-              <div className="flex items-center justify-between rounded-xl bg-white/70 px-4 py-3">
-                <span>Nueces tostadas (250g)</span>
-                <span className="font-semibold">$5.300</span>
-              </div>
-            </div>
+function FeaturedSection({ products }) {
+  return (
+    <section id="novedades" className="scroll-mt-24 bg-white">
+      <div className="mx-auto max-w-6xl px-6 py-16">
+        <div className="flex flex-wrap items-end justify-between gap-6">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-brand-500">Novedades</p>
+            <h2 className="mt-3 font-serif text-3xl text-brand-900">Lo último de la granja.</h2>
           </div>
+          <p className="max-w-md text-sm text-brand-600">
+            Descubre las incorporaciones recientes seleccionadas para esta semana.
+          </p>
+        </div>
+        <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {products.length === 0 ? (
+            <div className="rounded-3xl border border-brand-100 bg-brand-50 p-6 text-sm text-brand-600 shadow-sm">
+              Aún no hay novedades disponibles.
+            </div>
+          ) : (
+            products.map((product) => (
+              <div
+                key={product.id}
+                className="group overflow-hidden rounded-3xl border border-brand-100 bg-brand-50 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-brand-900/10"
+              >
+                <div className="h-36 w-full bg-brand-100">
+                  {product.imageUrl ? (
+                    <img
+                      src={product.imageUrl}
+                      alt={product.title}
+                      className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                    />
+                  ) : null}
+                </div>
+                <div className="space-y-3 p-5">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.2em] text-brand-500">
+                      {categoryLabels[product.category] ?? 'Otros'}
+                    </p>
+                    <h3 className="font-serif text-lg text-brand-900">{product.title}</h3>
+                  </div>
+                  <div className="flex items-center justify-between text-sm text-brand-600">
+                    <span>{product.unit}</span>
+                    <span className="text-base font-semibold text-brand-900">${product.price}</span>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </section>
   )
 }
 
-
 function About() {
   return (
     <section
       id="nosotros"
-      className="relative overflow-hidden"
+      className="relative scroll-mt-24 overflow-hidden"
       style={{
         backgroundImage: `linear-gradient(
     to bottom,
@@ -579,7 +641,7 @@ function Products({ products, onAdd, onDecrement, cartItems, selectedCategory, o
   return (
     <section
       id="productos"
-      className="relative overflow-hidden"
+      className="relative scroll-mt-24 overflow-hidden"
       style={{
         backgroundImage: `linear-gradient(to bottom, rgba(255,255,255,0.90), rgba(255,255,255,0.98)), url(${productsBg})`,
         backgroundSize: 'cover',
@@ -671,7 +733,7 @@ function Products({ products, onAdd, onDecrement, cartItems, selectedCategory, o
 
 function Contact() {
   return (
-    <section id="contacto" className="mx-auto max-w-6xl px-6 py-20">
+    <section id="contacto" className="scroll-mt-24 mx-auto max-w-6xl px-6 py-20">
       <div
         className="rounded-3xl bg-brand-800 p-10 text-white md:p-14"
         style={{
@@ -943,7 +1005,8 @@ function AdminDashboard({ token, onLogout }) {
     setError('')
     const payload = {
       ...form,
-      price: Number(form.price)
+      price: Number(form.price),
+      isFeatured: Boolean(form.isFeatured)
     }
     const res = await fetch('/api/admin/products', {
       method: 'POST',
@@ -1054,6 +1117,15 @@ function AdminDashboard({ token, onLogout }) {
                   <p className="mt-2 text-xs text-brand-500">Pegar URL de Cloudinary.</p>
                 </div>
               </div>
+              <label className="flex items-center gap-3 rounded-2xl border border-brand-100 bg-brand-50 px-4 py-3 text-sm text-brand-700">
+                <input
+                  type="checkbox"
+                  checked={form.isFeatured}
+                  onChange={(event) => setForm({ ...form, isFeatured: event.target.checked })}
+                  className="h-4 w-4 rounded border-brand-300 text-brand-700 focus:ring-brand-600"
+                />
+                Mostrar en Novedades
+              </label>
               {form.imageUrl ? (
                 <div className="overflow-hidden rounded-2xl border border-brand-100">
                   <img src={form.imageUrl} alt="preview" className="h-40 w-full object-cover" />
@@ -1099,7 +1171,14 @@ function AdminDashboard({ token, onLogout }) {
                     <p className="text-xs uppercase tracking-[0.2em] text-brand-500">
                       {categoryLabels[product.category] ?? product.category}
                     </p>
-                    <h3 className="font-serif text-lg text-brand-900">{product.title}</h3>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="font-serif text-lg text-brand-900">{product.title}</h3>
+                      {product.isFeatured ? (
+                        <span className="rounded-full border border-brand-200 bg-brand-50 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-600">
+                          Novedad
+                        </span>
+                      ) : null}
+                    </div>
                     <p className="text-sm text-brand-600">
                       ${product.price} · {product.unit || 'Sin unidad'}
                     </p>
