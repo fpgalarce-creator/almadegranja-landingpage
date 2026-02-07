@@ -804,10 +804,31 @@ function Footer() {
 }
 
 function CartDrawer({ open, onClose, items, total, onUpdate, onRemove }) {
+  const [customerName, setCustomerName] = useState('')
+  const [deliveryAddress, setDeliveryAddress] = useState('')
+  const [orderComment, setOrderComment] = useState('')
+
+  const isOrderValid = customerName.trim().length > 0 && deliveryAddress.trim().length > 0
+  const shippingLine = total >= 20000 ? 'Despacho: GRATIS (sobre $20.000)' : 'Despacho: por coordinar'
+
   const message = useMemo(() => {
+    const trimmedName = customerName.trim() || 'Sin nombre'
+    const trimmedAddress = deliveryAddress.trim() || 'Sin dirección'
+    const trimmedComment = orderComment.trim() || 'Sin comentario'
     const lines = items.map((item) => `- ${item.title} x${item.quantity} — $${item.quantity * item.price}`)
-    return `Pedido Alma de Granja:\n${lines.join('\n')}\nTotal: $${total}`
-  }, [items, total])
+    return [
+      'Pedido Alma de Granja',
+      `Nombre: ${trimmedName}`,
+      `Dirección: ${trimmedAddress}`,
+      `Comentario: ${trimmedComment}`,
+      '',
+      lines.join('\n'),
+      `Total: $${total}`,
+      shippingLine
+    ]
+      .filter(Boolean)
+      .join('\n')
+  }, [customerName, deliveryAddress, orderComment, items, total, shippingLine])
 
   const whatsappUrl = `https://wa.me/56958086762?text=${encodeURIComponent(message)}`
 
@@ -887,14 +908,63 @@ function CartDrawer({ open, onClose, items, total, onUpdate, onRemove }) {
               <span>Total</span>
               <span className="text-lg font-semibold text-brand-900">${total}</span>
             </div>
+            <p className="mt-2 text-sm font-semibold text-orange-500">
+              Despacho GRATIS por compras sobre $20.000
+            </p>
+            <div className="mt-4 space-y-3">
+              <div>
+                <label className="text-xs uppercase tracking-[0.2em] text-brand-500">Nombre</label>
+                <input
+                  type="text"
+                  value={customerName}
+                  onChange={(event) => setCustomerName(event.target.value)}
+                  className="mt-2 w-full rounded-full border border-brand-200 px-4 py-2 text-sm text-brand-900"
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-xs uppercase tracking-[0.2em] text-brand-500">
+                  Dirección para despacho
+                </label>
+                <input
+                  type="text"
+                  value={deliveryAddress}
+                  onChange={(event) => setDeliveryAddress(event.target.value)}
+                  className="mt-2 w-full rounded-full border border-brand-200 px-4 py-2 text-sm text-brand-900"
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-xs uppercase tracking-[0.2em] text-brand-500">
+                  Comentario adicional
+                </label>
+                <textarea
+                  value={orderComment}
+                  onChange={(event) => setOrderComment(event.target.value)}
+                  className="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-2 text-sm text-brand-900"
+                  rows={3}
+                />
+              </div>
+            </div>
+            {!isOrderValid ? (
+              <p className="mt-3 text-xs font-semibold text-orange-500">
+                Completa nombre y dirección para enviar el pedido
+              </p>
+            ) : null}
             <a
-              href={whatsappUrl}
+              href={isOrderValid ? whatsappUrl : undefined}
               target="_blank"
               rel="noreferrer"
-              className="mt-4 block w-full rounded-full bg-brand-800 px-4 py-3 text-center text-sm font-semibold text-white"
+              aria-disabled={!isOrderValid}
+              className={`mt-4 block w-full rounded-full px-4 py-3 text-center text-sm font-semibold text-white ${isOrderValid ? 'bg-brand-800' : 'cursor-not-allowed bg-brand-800/60 opacity-60'
+                }`}
             >
               Enviar pedido por WhatsApp
             </a>
+            <div className="mt-4 rounded-2xl border border-brand-200 bg-brand-50 p-4 text-sm text-brand-800">
+              <span className="font-semibold text-orange-500">Importante:</span> Solo repartimos en San
+              Francisco de Mostazal, Machalí, Rancagua, Graneros.
+            </div>
           </div>
         </div>
       </aside>
