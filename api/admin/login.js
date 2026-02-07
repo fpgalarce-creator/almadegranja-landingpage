@@ -2,6 +2,8 @@ const { ADMIN_USER, ADMIN_PASS, createToken } = require('../_utils/auth')
 const { parseJsonBody } = require('../_utils/body')
 
 module.exports = async (req, res) => {
+  console.log('login hit', req.method)
+  res.setHeader('Content-Type', 'application/json')
   if (req.method !== 'POST') {
     res.status(405).json({ message: 'Método no permitido' })
     return

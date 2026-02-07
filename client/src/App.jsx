@@ -1024,6 +1024,24 @@ function AdminLogin({ onLogin }) {
   const [form, setForm] = useState({ username: '', password: '' })
   const [error, setError] = useState('')
 
+  const readJsonSafe = async (res) => {
+    const contentType = res.headers.get('content-type') || ''
+    if (contentType.includes('application/json')) {
+      try {
+        return await res.json()
+      } catch (jsonError) {
+        return null
+      }
+    }
+    try {
+      const text = await res.text()
+      if (!text) return null
+      return JSON.parse(text)
+    } catch (textError) {
+      return null
+    }
+  }
+
   const handleSubmit = async (event) => {
     event.preventDefault()
     setError('')
@@ -1032,14 +1050,17 @@ function AdminLogin({ onLogin }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form)
     })
-    if (res.ok) {
-      const data = await res.json()
+    const data = await readJsonSafe(res)
+    if (res.ok && data?.token) {
       storeToken(data.token)
       onLogin(data.token)
-    } else {
-      const data = await res.json().catch(() => ({}))
-      setError(data.message || 'Credenciales inválidas')
+      return
     }
+    if (data?.message) {
+      setError(data.message)
+      return
+    }
+    setError('Respuesta inválida del servidor. Intenta nuevamente.')
   }
 
   return (

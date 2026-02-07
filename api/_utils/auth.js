@@ -1,8 +1,8 @@
 const jwt = require('jsonwebtoken')
 
-const ADMIN_USER = process.env.ADMIN_USER || 'admin'
-const ADMIN_PASS = process.env.ADMIN_PASS || 'admin123'
-const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_change_me'
+const ADMIN_USER = process.env.ADMIN_USERNAME || 'admin'
+const ADMIN_PASS = process.env.ADMIN_PASSWORD || 'admin'
+const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_almadegranja'
 
 const createToken = (payload) => jwt.sign(payload, JWT_SECRET, { expiresIn: '2h' })
 
@@ -16,7 +16,7 @@ const requireAuth = (req, res) => {
   try {
     return jwt.verify(token, JWT_SECRET)
   } catch (error) {
-    res.status(401).json({ message: 'Token inválido' })
+    res.status(401).json({ message: 'No autorizado' })
     return null
   }
 }

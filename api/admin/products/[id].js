@@ -8,6 +8,7 @@ const getIdFromRequest = (req) => {
 }
 
 module.exports = async (req, res) => {
+  res.setHeader('Content-Type', 'application/json')
   const user = requireAuth(req, res)
   if (!user) return
 
