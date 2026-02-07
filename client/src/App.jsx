@@ -165,9 +165,6 @@ function Home() {
       />
       <main>
         <Hero onCtaClick={() => document.getElementById('productos')?.scrollIntoView({ behavior: 'smooth' })} />
-        <Reveal>
-          <About />
-        </Reveal>
         <Reveal delay={120}>
           <Products
             products={catalog}
@@ -177,6 +174,9 @@ function Home() {
             selectedCategory={selectedCategory}
             onCategoryChange={setSelectedCategory}
           />
+        </Reveal>
+        <Reveal>
+          <About />
         </Reveal>
         <Reveal delay={180}>
           <Contact />
