@@ -490,14 +490,14 @@ function About() {
       style={{
         backgroundImage: `linear-gradient(
     to bottom,
-    rgba(255,255,255,0.65),
-    rgba(255,255,255,0.85)
+    rgba(255,255,255,0.45),
+    rgba(255,255,255,0.65)
   ), url(${sobreNosotrosBg})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center'
       }}
     >
-      <div className="pointer-events-none absolute inset-0 bg-white/20" />
+      <div className="pointer-events-none absolute inset-0 bg-white/10" />
 
       <div className="relative mx-auto max-w-6xl px-6 py-20">
         <div className="grid gap-12 md:grid-cols-[0.9fr_1.1fr]">
