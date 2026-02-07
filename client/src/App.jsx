@@ -508,9 +508,9 @@ function Hero({ onProductsClick, onNewsClick }) {
             </button>
           </div>
 
-          <div className={`fade-up flex justify-center ${visible ? 'show' : ''}`}>
-            <p className="rounded-full border border-orange-400/40 bg-black/30 px-6 py-3 text-center text-sm font-semibold text-orange-400 shadow-lg shadow-orange-500/20 backdrop-blur-sm animate-pulse motion-reduce:animate-none">
-              Despachamos en San Francisco de Mostazal, Graneros, Rancagua y Machalí por compras sobre $20.000
+          <div className="flex justify-center">
+            <p className="rounded-full border border-orange-200/80 bg-white/80 px-6 py-3 text-center text-sm font-semibold text-orange-600 shadow-lg shadow-orange-500/10 backdrop-blur-sm">
+              Despachamos GRATIS en San Francisco de Mostazal, Graneros, Rancagua y Machalí por compras sobre $20.000
             </p>
           </div>
         </div>
@@ -1083,6 +1083,8 @@ function AdminDashboard({ token, onLogout }) {
   const [form, setForm] = useState(initialForm)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
+  const [imageFile, setImageFile] = useState(null)
+  const [uploadState, setUploadState] = useState({ loading: false, error: '' })
 
   const authHeaders = {
     Authorization: `Bearer ${token}`
@@ -1105,6 +1107,8 @@ function AdminDashboard({ token, onLogout }) {
 
   const resetForm = () => {
     setForm(initialForm)
+    setImageFile(null)
+    setUploadState({ loading: false, error: '' })
   }
 
   const handleSubmit = async (event) => {
@@ -1172,6 +1176,43 @@ function AdminDashboard({ token, onLogout }) {
       return
     }
     await loadProducts()
+  }
+
+  const handleFileChange = (event) => {
+    const file = event.target.files?.[0] ?? null
+    setImageFile(file)
+    setUploadState({ loading: false, error: '' })
+  }
+
+  const handleUpload = async () => {
+    if (!imageFile) {
+      setUploadState({ loading: false, error: 'Selecciona una imagen para subir.' })
+      return
+    }
+    setUploadState({ loading: true, error: '' })
+    const formData = new FormData()
+    formData.append('file', imageFile)
+    try {
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: authHeaders,
+        body: formData
+      })
+      if (res.status === 401) {
+        onLogout()
+        return
+      }
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setUploadState({ loading: false, error: data.message || 'No se pudo subir la imagen.' })
+        return
+      }
+      const data = await res.json()
+      setForm((prev) => ({ ...prev, imageUrl: data.url || '' }))
+      setUploadState({ loading: false, error: '' })
+    } catch (error) {
+      setUploadState({ loading: false, error: 'No se pudo subir la imagen.' })
+    }
   }
 
   return (
@@ -1255,6 +1296,32 @@ function AdminDashboard({ token, onLogout }) {
                     placeholder="https://res.cloudinary.com/..."
                   />
                   <p className="mt-2 text-xs text-brand-500">Pegar URL de Cloudinary.</p>
+                </div>
+              </div>
+              <div className="grid gap-4 md:grid-cols-[1.2fr_0.8fr]">
+                <div>
+                  <label className="text-xs uppercase tracking-[0.2em] text-brand-500">Subir imagen</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="mt-2 w-full rounded-full border border-brand-200 bg-white px-4 py-2 text-sm"
+                  />
+                </div>
+                <div className="flex flex-col justify-end">
+                  <button
+                    type="button"
+                    onClick={handleUpload}
+                    className="rounded-full border border-brand-200 px-4 py-2 text-sm text-brand-700 transition hover:bg-brand-50"
+                    disabled={uploadState.loading}
+                  >
+                    {uploadState.loading ? 'Subiendo...' : 'Subir a Cloudinary'}
+                  </button>
+                  {uploadState.error ? (
+                    <p className="mt-2 text-xs text-red-600">{uploadState.error}</p>
+                  ) : (
+                    <p className="mt-2 text-xs text-brand-500">Sube una imagen local para generar la URL.</p>
+                  )}
                 </div>
               </div>
               <label className="flex items-center gap-3 rounded-2xl border border-brand-100 bg-brand-50 px-4 py-3 text-sm text-brand-700">
