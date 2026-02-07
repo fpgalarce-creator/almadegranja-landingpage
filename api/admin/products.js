@@ -4,6 +4,7 @@ const { requireAuth } = require('../_utils/auth')
 const { parseJsonBody } = require('../_utils/body')
 
 module.exports = async (req, res) => {
+  console.log('admin products hit', req.method)
   const user = requireAuth(req, res)
   if (!user) return
 
