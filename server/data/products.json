@@ -7,6 +7,7 @@
     "price": 6500,
     "unit": "docena",
     "imageUrl": "https://images.unsplash.com/photo-1518569656558-1f25e69d93d7?auto=format&fit=crop&w=800&q=80",
+    "isFeatured": true,
     "createdAt": "2024-01-10T10:00:00.000Z"
   },
   {
@@ -17,6 +18,7 @@
     "price": 9200,
     "unit": "500g",
     "imageUrl": "https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=800&q=80",
+    "isFeatured": true,
     "createdAt": "2024-01-12T10:00:00.000Z"
   },
   {
@@ -27,6 +29,7 @@
     "price": 8800,
     "unit": "350g",
     "imageUrl": "https://images.unsplash.com/photo-1452195100486-9cc805987862?auto=format&fit=crop&w=800&q=80",
+    "isFeatured": false,
     "createdAt": "2024-01-14T10:00:00.000Z"
   },
   {
@@ -37,6 +40,7 @@
     "price": 5300,
     "unit": "250g",
     "imageUrl": "https://images.unsplash.com/photo-1508747703725-719777637510?auto=format&fit=crop&w=800&q=80",
+    "isFeatured": true,
     "createdAt": "2024-01-16T10:00:00.000Z"
   },
   {
@@ -47,6 +51,7 @@
     "price": 4900,
     "unit": "250g",
     "imageUrl": "https://images.unsplash.com/photo-1505576391880-b3f9d713dc4f?auto=format&fit=crop&w=800&q=80",
+    "isFeatured": false,
     "createdAt": "2024-01-18T10:00:00.000Z"
   },
   {
@@ -57,6 +62,7 @@
     "price": 7200,
     "unit": "docena",
     "imageUrl": "https://images.unsplash.com/photo-1502741338009-cac2772e18bc?auto=format&fit=crop&w=800&q=80",
+    "isFeatured": false,
     "createdAt": "2024-01-20T10:00:00.000Z"
   }
 ]
