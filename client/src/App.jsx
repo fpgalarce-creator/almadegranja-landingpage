@@ -1,6 +1,8 @@
 import productsBg from './assets/hero/products-bg.jpeg'
 import logo from './assets/logo.svg'
 import heroImage from './assets/hero/hero.jpeg'
+import aboutImage from './assets/hero/sobrenosotros.PNG'
+import contactImage from './assets/hero/contacto.PNG'
 import { Routes, Route, Link } from 'react-router-dom'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
@@ -499,7 +501,10 @@ function About() {
         <div className="grid gap-6 md:grid-cols-2">
           {['Crianza consciente', 'Producción lenta', 'Sabores auténticos', 'Entrega cuidada'].map((item) => (
             <div key={item} className="rounded-3xl border border-brand-100 bg-white p-6 shadow-sm">
-              <div className="mb-4 h-32 rounded-2xl bg-brand-100" />
+              <div
+                className="mb-4 h-32 rounded-2xl bg-cover bg-center"
+                style={{ backgroundImage: `url(${aboutImage})` }}
+              />
               <h3 className="font-serif text-lg text-brand-900">{item}</h3>
               <p className="mt-2 text-sm text-brand-600">
                 Curamos cada etapa para asegurar un producto final premium y responsable.
@@ -654,7 +659,14 @@ function Products({ products, onAdd, onDecrement, cartItems, selectedCategory, o
 function Contact() {
   return (
     <section id="contacto" className="mx-auto max-w-6xl px-6 py-20">
-      <div className="rounded-3xl bg-brand-800 p-10 text-white md:p-14">
+      <div
+        className="rounded-3xl bg-brand-800 p-10 text-white md:p-14"
+        style={{
+          backgroundImage: `linear-gradient(to right, rgba(17, 24, 39, 0.78), rgba(17, 24, 39, 0.6)), url(${contactImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        }}
+      >
         <div className="grid gap-6 md:grid-cols-[1.2fr_0.8fr]">
           <div>
             <p className="text-xs uppercase tracking-[0.3em] text-brand-200">Contacto</p>
