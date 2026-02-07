@@ -7,6 +7,10 @@
     "build": "npm --prefix client run build",
     "postinstall": "npm install --prefix client && npm install --prefix server"
   },
+  "dependencies": {
+    "cloudinary": "^2.0.0",
+    "formidable": "^3.5.1"
+  },
   "devDependencies": {
     "concurrently": "^8.2.2"
   }
