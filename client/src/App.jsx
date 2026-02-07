@@ -1,3 +1,6 @@
+import productsBg from './assets/hero/products-bg.jpeg'
+import logo from './assets/logo.svg'
+import heroImage from './assets/hero/hero.jpeg'
 import { Routes, Route, Link } from 'react-router-dom'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
@@ -268,18 +271,21 @@ function Navbar({ totalItems, onCartClick, onCategorySelect }) {
 
   return (
     <header
-      className={`sticky top-0 z-50 border-b border-black/5 bg-white/70 backdrop-blur transition-all duration-300 ${
-        isScrolled ? 'shadow-lg shadow-brand-900/5' : ''
-      }`}
+      className={`sticky top-0 z-50 border-b border-black/5 bg-white/70 backdrop-blur transition-all duration-300 ${isScrolled ? 'shadow-lg shadow-brand-900/5' : ''
+        }`}
     >
       <div
-        className={`mx-auto flex max-w-6xl items-center justify-between px-6 transition-all duration-300 ${
-          isScrolled ? 'py-3' : 'py-5'
-        }`}
+        className={`mx-auto flex max-w-6xl items-center justify-between px-6 transition-all duration-300 ${isScrolled ? 'py-3' : 'py-5'
+          }`}
       >
-        <Link to="/" className="text-xl font-semibold font-serif text-brand-800">
-          Alma de Granja
+        <Link to="/" className="flex items-center">
+          <img
+            src={logo}
+            alt="Alma de Granja"
+            className="h-16 max-w-[140px] w-auto object-contain"
+          />
         </Link>
+
         <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
           <a href="#inicio" className="nav-link text-brand-700">
             Inicio
@@ -306,9 +312,8 @@ function Navbar({ totalItems, onCartClick, onCategorySelect }) {
             <div
               onMouseEnter={openProductsMenu}
               onMouseLeave={scheduleCloseProductsMenu}
-              className={`absolute left-0 top-full mt-3 w-48 rounded-2xl border border-brand-100 bg-white p-2 shadow-xl shadow-brand-900/10 transition ${
-                isProductsOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
-              } md:group-hover:pointer-events-auto md:group-hover:opacity-100`}
+              className={`absolute left-0 top-full mt-3 w-48 rounded-2xl border border-brand-100 bg-white p-2 shadow-xl shadow-brand-900/10 transition ${isProductsOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
+                } md:group-hover:pointer-events-auto md:group-hover:opacity-100`}
             >
               {productLinks.map((item) => (
                 <button
@@ -383,66 +388,86 @@ function Hero({ onCtaClick }) {
   }, [])
 
   return (
-    <section id="inicio" className="hero-gradient relative overflow-hidden">
-      <div className="pointer-events-none absolute left-1/2 top-10 h-64 w-64 -translate-x-1/2 rounded-full bg-brand-200/40 blur-3xl" />
+    <section
+      id="inicio"
+      className="relative overflow-hidden"
+      style={{
+        backgroundImage: `linear-gradient(to bottom, rgba(10,10,10,0.45), rgba(10,10,10,0.25)), url(${heroImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
+      }}
+    >
+      {/* brillo suave arriba */}
+      <div className="pointer-events-none absolute left-1/2 top-10 h-64 w-64 -translate-x-1/2 rounded-full bg-white/20 blur-3xl" />
+      {/* degradé abajo para que termine suave */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-brand-50 to-transparent" />
+
       <div className="mx-auto grid max-w-6xl gap-12 px-6 py-24 md:grid-cols-[1.15fr_0.85fr]">
         <div className="space-y-6">
-          <p className={`fade-up text-xs uppercase tracking-[0.35em] text-brand-500 ${visible ? 'show' : ''}`}>
+          <p className={`fade-up text-xs uppercase tracking-[0.35em] text-white/80 ${visible ? 'show' : ''}`}>
             Productos de granja premium
           </p>
-          <h1 className={`fade-up font-serif text-4xl font-semibold text-brand-900 md:text-5xl ${visible ? 'show' : ''}`}>
+
+          <h1 className={`fade-up font-serif text-4xl font-semibold text-white md:text-5xl ${visible ? 'show' : ''}`}>
             Sabores artesanales desde el corazón de nuestra granja.
           </h1>
-          <p className={`fade-up text-lg text-brand-700 ${visible ? 'show' : ''}`}>
+
+          <p className={`fade-up text-lg text-white/85 ${visible ? 'show' : ''}`}>
             Seleccionamos ingredientes nobles, procesos sostenibles y una experiencia cuidada para llegar con
             frescura a tu mesa.
           </p>
+
           <div className={`fade-up flex flex-wrap gap-4 ${visible ? 'show' : ''}`}>
             <button
               onClick={onCtaClick}
-              className="rounded-full bg-brand-800 px-7 py-3 text-sm font-semibold uppercase tracking-[0.25em] text-white shadow-lg shadow-brand-900/20 transition hover:-translate-y-0.5 hover:bg-brand-700"
+              className="rounded-full bg-white px-7 py-3 text-sm font-semibold uppercase tracking-[0.25em] text-brand-900 shadow-lg transition hover:-translate-y-0.5 hover:bg-white/90"
             >
               Ver productos
             </button>
-            <button className="rounded-full border border-brand-200 px-6 py-3 text-sm font-semibold text-brand-700">
+
+            <button className="rounded-full border border-white/40 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/15">
               Nuestra historia
             </button>
           </div>
-          <div className="flex flex-wrap gap-6 text-sm text-brand-600">
+
+          <div className="flex flex-wrap gap-6 text-sm text-white/80">
             <div>
-              <p className="font-semibold text-brand-900">+14</p>
+              <p className="font-semibold text-white">+14</p>
               <p>Años de tradición</p>
             </div>
             <div>
-              <p className="font-semibold text-brand-900">100%</p>
+              <p className="font-semibold text-white">100%</p>
               <p>Producción local</p>
             </div>
             <div>
-              <p className="font-semibold text-brand-900">48h</p>
+              <p className="font-semibold text-white">48h</p>
               <p>Entrega express</p>
             </div>
           </div>
         </div>
+
+        {/* card derecha */}
         <div className="glass card-shadow rounded-3xl p-6">
-          <div className="flex h-full flex-col justify-between gap-6 rounded-2xl border border-brand-100 bg-white p-6">
+          <div className="flex h-full flex-col justify-between gap-6 rounded-2xl border border-white/30 bg-white/70 p-6 backdrop-blur">
             <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-brand-500">Selección destacada</p>
+              <p className="text-xs uppercase tracking-[0.2em] text-brand-700/80">Selección destacada</p>
               <h2 className="mt-3 font-serif text-2xl text-brand-900">Cajas semanales de temporada</h2>
-              <p className="mt-3 text-sm text-brand-600">
+              <p className="mt-3 text-sm text-brand-700">
                 Combinamos huevos de libre pastoreo, quesos curados y frutos secos tostados para una despensa
                 premium.
               </p>
             </div>
+
             <div className="grid gap-3 text-sm text-brand-700">
-              <div className="flex items-center justify-between rounded-xl bg-brand-50 px-4 py-3">
+              <div className="flex items-center justify-between rounded-xl bg-white/70 px-4 py-3">
                 <span>Huevos campo (docena)</span>
                 <span className="font-semibold">$6.500</span>
               </div>
-              <div className="flex items-center justify-between rounded-xl bg-brand-50 px-4 py-3">
+              <div className="flex items-center justify-between rounded-xl bg-white/70 px-4 py-3">
                 <span>Queso ahumado (500g)</span>
                 <span className="font-semibold">$9.200</span>
               </div>
-              <div className="flex items-center justify-between rounded-xl bg-brand-50 px-4 py-3">
+              <div className="flex items-center justify-between rounded-xl bg-white/70 px-4 py-3">
                 <span>Nueces tostadas (250g)</span>
                 <span className="font-semibold">$5.300</span>
               </div>
@@ -453,6 +478,7 @@ function Hero({ onCtaClick }) {
     </section>
   )
 }
+
 
 function About() {
   return (
@@ -510,7 +536,7 @@ function Products({ products, onAdd, onDecrement, cartItems, selectedCategory, o
                   ? 'frutos_secos'
                   : product.category === 'huevos_campo'
                     ? 'huevos_campo'
-              : product.category
+                    : product.category
       })),
     [products]
   )
@@ -533,8 +559,18 @@ function Products({ products, onAdd, onDecrement, cartItems, selectedCategory, o
   }, [normalizedProducts, selectedCategory])
 
   return (
-    <section id="productos" className="bg-white">
-      <div className="mx-auto max-w-6xl px-6 py-20">
+    <section
+      id="productos"
+      className="relative overflow-hidden"
+      style={{
+        backgroundImage: `linear-gradient(to bottom, rgba(255,255,255,0.90), rgba(255,255,255,0.98)), url(${productsBg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
+      }}
+    >
+      <div className="pointer-events-none absolute inset-0 bg-white/40 backdrop-blur-[1px]" />
+
+      <div className="relative mx-auto max-w-6xl px-6 py-20">
         <div className="flex flex-wrap items-end justify-between gap-6">
           <div>
             <p className="text-xs uppercase tracking-[0.3em] text-brand-500">Productos</p>
@@ -550,11 +586,10 @@ function Products({ products, onAdd, onDecrement, cartItems, selectedCategory, o
               key={filter.value}
               type="button"
               onClick={() => onCategoryChange(filter.value)}
-              className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] transition ${
-                selectedCategory === filter.value
-                  ? 'bg-brand-800 text-white shadow-lg shadow-brand-900/15'
-                  : 'border border-brand-200 text-brand-700 hover:bg-brand-50'
-              }`}
+              className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] transition ${selectedCategory === filter.value
+                ? 'bg-brand-800 text-white shadow-lg shadow-brand-900/15'
+                : 'border border-brand-200 text-brand-700 hover:bg-brand-50'
+                }`}
             >
               {filter.label}
             </button>
@@ -690,9 +725,8 @@ function CartDrawer({ open, onClose, items, total, onUpdate, onRemove }) {
         onClick={onClose}
       />
       <aside
-        className={`absolute right-0 top-0 h-full w-full max-w-md transform bg-white shadow-2xl transition-transform ${
-          open ? 'translate-x-0' : 'translate-x-full'
-        }`}
+        className={`absolute right-0 top-0 h-full w-full max-w-md transform bg-white shadow-2xl transition-transform ${open ? 'translate-x-0' : 'translate-x-full'
+          }`}
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex h-full flex-col">
@@ -1072,9 +1106,8 @@ const socialLinks = {
 function FloatingButtons({ drawerOpen }) {
   return (
     <div
-      className={`fixed bottom-6 right-6 z-40 flex flex-col gap-3 transition-transform ${
-        drawerOpen ? 'md:-translate-x-72' : ''
-      }`}
+      className={`fixed bottom-6 right-6 z-40 flex flex-col gap-3 transition-transform ${drawerOpen ? 'md:-translate-x-72' : ''
+        }`}
     >
       {[
         { label: 'WhatsApp', href: socialLinks.whatsapp, bg: 'bg-green-500' },
