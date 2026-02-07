@@ -1,7 +1,7 @@
 import productsBg from './assets/hero/products-bg.jpeg'
 import logo from './assets/logo.svg'
 import heroImage from './assets/hero/hero.jpeg'
-import aboutImage from './assets/hero/sobrenosotros.PNG'
+import sobreNosotrosBg from './assets/hero/sobrenosotros.PNG'
 import contactImage from './assets/hero/contacto.PNG'
 import { Routes, Route, Link } from 'react-router-dom'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -484,33 +484,42 @@ function Hero({ onCtaClick }) {
 
 function About() {
   return (
-    <section id="nosotros" className="mx-auto max-w-6xl px-6 py-20">
-      <div className="grid gap-12 md:grid-cols-[0.9fr_1.1fr]">
-        <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-brand-500">Sobre nosotros</p>
-          <h2 className="mt-4 font-serif text-3xl text-brand-900">Una granja boutique, un legado familiar.</h2>
-          <p className="mt-4 text-brand-700">
-            Alma de Granja nace de la pasión por la agricultura consciente. Nuestra producción respeta el ciclo
-            natural y prioriza el bienestar animal para ofrecer alimentos honestos.
-          </p>
-          <p className="mt-4 text-brand-700">
-            Trabajamos con procesos artesanales, cuidando cada detalle desde la recolección hasta la entrega para
-            mantener la frescura y el sabor original.
-          </p>
-        </div>
-        <div className="grid gap-6 md:grid-cols-2">
-          {['Crianza consciente', 'Producción lenta', 'Sabores auténticos', 'Entrega cuidada'].map((item) => (
-            <div key={item} className="rounded-3xl border border-brand-100 bg-white p-6 shadow-sm">
-              <div
-                className="mb-4 h-32 rounded-2xl bg-cover bg-center"
-                style={{ backgroundImage: `url(${aboutImage})` }}
-              />
-              <h3 className="font-serif text-lg text-brand-900">{item}</h3>
-              <p className="mt-2 text-sm text-brand-600">
-                Curamos cada etapa para asegurar un producto final premium y responsable.
-              </p>
-            </div>
-          ))}
+    <section
+      id="nosotros"
+      className="relative overflow-hidden"
+      style={{
+        backgroundImage: `linear-gradient(to bottom, rgba(255,255,255,0.88), rgba(255,255,255,0.96)), url(${sobreNosotrosBg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
+      }}
+    >
+      <div className="pointer-events-none absolute inset-0 bg-white/40 backdrop-blur-[1px]" />
+
+      <div className="relative mx-auto max-w-6xl px-6 py-20">
+        <div className="grid gap-12 md:grid-cols-[0.9fr_1.1fr]">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-brand-500">Sobre nosotros</p>
+            <h2 className="mt-4 font-serif text-3xl text-brand-900">Una granja boutique, un legado familiar.</h2>
+            <p className="mt-4 text-brand-700">
+              Alma de Granja nace de la pasión por la agricultura consciente. Nuestra producción respeta el ciclo
+              natural y prioriza el bienestar animal para ofrecer alimentos honestos.
+            </p>
+            <p className="mt-4 text-brand-700">
+              Trabajamos con procesos artesanales, cuidando cada detalle desde la recolección hasta la entrega para
+              mantener la frescura y el sabor original.
+            </p>
+          </div>
+          <div className="grid gap-6 md:grid-cols-2">
+            {['Crianza consciente', 'Producción lenta', 'Sabores auténticos', 'Entrega cuidada'].map((item) => (
+              <div key={item} className="rounded-3xl border border-brand-100 bg-white p-6 shadow-sm">
+                <div className="mb-4 h-32 rounded-2xl bg-brand-100" />
+                <h3 className="font-serif text-lg text-brand-900">{item}</h3>
+                <p className="mt-2 text-sm text-brand-600">
+                  Curamos cada etapa para asegurar un producto final premium y responsable.
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
