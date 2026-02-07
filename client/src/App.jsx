@@ -78,6 +78,39 @@ function Reveal({ children, delay = 0 }) {
   )
 }
 
+function useQuantityById(cartItems) {
+  return useMemo(() => {
+    return cartItems.reduce((acc, item) => {
+      acc[item.id] = item.quantity
+      return acc
+    }, {})
+  }, [cartItems])
+}
+
+function QuantityControl({ quantity, onDecrement, onIncrement, label }) {
+  return (
+    <div className="flex items-center justify-between rounded-full border border-brand-200 bg-white px-3 py-2 text-sm shadow-sm">
+      <button
+        type="button"
+        onClick={onDecrement}
+        className="flex h-8 w-8 items-center justify-center rounded-full border border-brand-200 text-brand-700 transition hover:bg-brand-50"
+        aria-label={`Reducir ${label}`}
+      >
+        -
+      </button>
+      <span className="min-w-[24px] text-center text-sm font-semibold text-brand-800">{quantity}</span>
+      <button
+        type="button"
+        onClick={onIncrement}
+        className="flex h-8 w-8 items-center justify-center rounded-full border border-brand-200 text-brand-700 transition hover:bg-brand-50"
+        aria-label={`Agregar ${label}`}
+      >
+        +
+      </button>
+    </div>
+  )
+}
+
 function Home() {
   const [products, setProducts] = useState([])
   const [featuredProducts, setFeaturedProducts] = useState(null)
@@ -193,7 +226,12 @@ function Home() {
           }
         />
         <Reveal delay={80}>
-          <FeaturedSection products={featuredList} />
+          <FeaturedSection
+            products={featuredList}
+            onAdd={addToCart}
+            onDecrement={(productId) => updateQuantity(productId, -1)}
+            cartItems={cartItems}
+          />
         </Reveal>
         <Reveal delay={120}>
           <Products
@@ -470,19 +508,10 @@ function Hero({ onProductsClick, onNewsClick }) {
             </button>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-6 text-sm text-white/80">
-            <div>
-              <p className="font-semibold text-white">+14</p>
-              <p>Años de tradición</p>
-            </div>
-            <div>
-              <p className="font-semibold text-white">100%</p>
-              <p>Producción local</p>
-            </div>
-            <div>
-              <p className="font-semibold text-white">48h</p>
-              <p>Entrega express</p>
-            </div>
+          <div className={`fade-up flex justify-center ${visible ? 'show' : ''}`}>
+            <p className="rounded-full border border-brand-800/40 bg-white/20 px-6 py-3 text-center text-sm font-semibold text-brand-100 backdrop-blur-sm">
+              Despachamos en San Francisco de Mostazal, Graneros, Rancagua y Machalí.
+            </p>
           </div>
         </div>
       </div>
@@ -490,9 +519,11 @@ function Hero({ onProductsClick, onNewsClick }) {
   )
 }
 
-function FeaturedSection({ products }) {
+function FeaturedSection({ products, onAdd, onDecrement, cartItems }) {
+  const quantityById = useQuantityById(cartItems)
+
   return (
-    <section id="novedades" className="scroll-mt-24 bg-white">
+    <section id="novedades" className="scroll-mt-24 bg-[#F7F3EE]">
       <div className="mx-auto max-w-6xl px-6 py-16">
         <div className="flex flex-wrap items-end justify-between gap-6">
           <div>
@@ -534,6 +565,12 @@ function FeaturedSection({ products }) {
                     <span>{product.unit}</span>
                     <span className="text-base font-semibold text-brand-900">${product.price}</span>
                   </div>
+                  <QuantityControl
+                    quantity={quantityById[product.id] ?? 0}
+                    onDecrement={() => onDecrement(product.id)}
+                    onIncrement={() => onAdd(product)}
+                    label={product.title}
+                  />
                 </div>
               </div>
             ))
@@ -621,12 +658,7 @@ function Products({ products, onAdd, onDecrement, cartItems, selectedCategory, o
     [products]
   )
 
-  const quantityById = useMemo(() => {
-    return cartItems.reduce((acc, item) => {
-      acc[item.id] = item.quantity
-      return acc
-    }, {})
-  }, [cartItems])
+  const quantityById = useQuantityById(cartItems)
 
   const visibleProducts = useMemo(() => {
     if (selectedCategory === 'todos') return normalizedProducts
@@ -701,27 +733,12 @@ function Products({ products, onAdd, onDecrement, cartItems, selectedCategory, o
                   <span>{product.unit}</span>
                   <span className="text-lg font-semibold text-brand-900">${product.price}</span>
                 </div>
-                <div className="flex items-center justify-between rounded-full border border-brand-200 bg-white px-3 py-2 text-sm shadow-sm">
-                  <button
-                    type="button"
-                    onClick={() => onDecrement(product.id)}
-                    className="flex h-8 w-8 items-center justify-center rounded-full border border-brand-200 text-brand-700 transition hover:bg-brand-50"
-                    aria-label={`Reducir ${product.title}`}
-                  >
-                    -
-                  </button>
-                  <span className="min-w-[24px] text-center text-sm font-semibold text-brand-800">
-                    {quantityById[product.id] ?? 0}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => onAdd(product)}
-                    className="flex h-8 w-8 items-center justify-center rounded-full border border-brand-200 text-brand-700 transition hover:bg-brand-50"
-                    aria-label={`Agregar ${product.title}`}
-                  >
-                    +
-                  </button>
-                </div>
+                <QuantityControl
+                  quantity={quantityById[product.id] ?? 0}
+                  onDecrement={() => onDecrement(product.id)}
+                  onIncrement={() => onAdd(product)}
+                  label={product.title}
+                />
               </div>
             </div>
           ))}
