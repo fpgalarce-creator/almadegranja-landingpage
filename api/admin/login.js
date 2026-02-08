@@ -17,20 +17,16 @@ module.exports = async (req, res) => {
       return
     }
 
-    const isProduction = process.env.NODE_ENV === 'production'
-    const adminUser = process.env.ADMIN_USERNAME || 'admin'
-    const adminPass = process.env.ADMIN_PASSWORD || 'admin'
-    const jwtSecret = process.env.JWT_SECRET || (!isProduction ? 'dev_secret_almadegranja' : null)
+    const adminUser = process.env.ADMIN_USER
+    const adminPass = process.env.ADMIN_PASSWORD
+    const jwtSecret = process.env.JWT_SECRET
 
-    if (
-      isProduction &&
-      (!process.env.ADMIN_USERNAME || !process.env.ADMIN_PASSWORD || !process.env.JWT_SECRET)
-    ) {
+    if (!adminUser || !adminPass || !jwtSecret) {
       console.error('admin/login error', {
         message: 'Missing required ENV vars',
-        hasAdminUsername: Boolean(process.env.ADMIN_USERNAME),
-        hasAdminPassword: Boolean(process.env.ADMIN_PASSWORD),
-        hasJwtSecret: Boolean(process.env.JWT_SECRET)
+        hasAdminUser: Boolean(adminUser),
+        hasAdminPassword: Boolean(adminPass),
+        hasJwtSecret: Boolean(jwtSecret)
       })
       res.status(500).json({ message: 'Configuración incompleta en servidor (ENV).' })
       return
@@ -38,12 +34,6 @@ module.exports = async (req, res) => {
 
     if (username !== adminUser || password !== adminPass) {
       res.status(401).json({ message: 'Credenciales inválidas' })
-      return
-    }
-
-    if (!jwtSecret) {
-      console.error('admin/login error', { message: 'Missing JWT_SECRET' })
-      res.status(500).json({ message: 'Configuración incompleta en servidor (ENV).' })
       return
     }
 
