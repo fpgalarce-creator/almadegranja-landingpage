@@ -18,17 +18,17 @@ module.exports = async (req, res) => {
     }
 
     const adminUser = process.env.ADMIN_USER
-    const adminPass = process.env.ADMIN_PASSWORD
+    const adminPass = process.env.ADMIN_PASSWORD || process.env.ADMIN_PASS
     const jwtSecret = process.env.JWT_SECRET
 
     if (!adminUser || !adminPass || !jwtSecret) {
       console.error('admin/login error', {
         message: 'Missing required ENV vars',
         hasAdminUser: Boolean(adminUser),
-        hasAdminPassword: Boolean(adminPass),
+        hasAdminPassword: Boolean(process.env.ADMIN_PASSWORD || process.env.ADMIN_PASS),
         hasJwtSecret: Boolean(jwtSecret)
       })
-      res.status(500).json({ message: 'Configuración incompleta en servidor (ENV).' })
+      res.status(500).json({ message: 'Configuración incompleta en servidor (ENV). Revisar ADMIN_USER, ADMIN_PASSWORD (o ADMIN_PASS) y JWT_SECRET.' })
       return
     }
 
@@ -41,6 +41,6 @@ module.exports = async (req, res) => {
     res.status(200).json({ token })
   } catch (error) {
     console.error('admin/login error', error)
-    res.status(500).json({ message: 'Configuración incompleta en servidor (ENV).' })
+    res.status(500).json({ message: 'Configuración incompleta en servidor (ENV). Revisar ADMIN_USER, ADMIN_PASSWORD (o ADMIN_PASS) y JWT_SECRET.' })
   }
 }
