@@ -1,4 +1,4 @@
-const { readProducts, writeProducts } = require('../../../server/utils/storage')
+const { getProducts, saveProducts } = require('../../../server/utils/storage')
 const { requireAuth } = require('../../_utils/auth')
 
 const getIdFromRequest = (req) => {
@@ -17,10 +17,14 @@ module.exports = async (req, res) => {
     return
   }
 
-  const id = getIdFromRequest(req)
-  const products = await readProducts()
-  const updated = products.filter((product) => product.id !== id)
-  // Nota: el filesystem de Vercel no es persistente entre invocaciones.
-  await writeProducts(updated)
-  res.status(204).send()
+  try {
+    const id = getIdFromRequest(req)
+    const products = await getProducts()
+    const updated = products.filter((product) => product.id !== id)
+    await saveProducts(updated)
+    res.status(204).send()
+  } catch (error) {
+    console.error('admin/products/:id error', error)
+    res.status(500).json({ message: error?.message || 'Error al eliminar producto.' })
+  }
 }
