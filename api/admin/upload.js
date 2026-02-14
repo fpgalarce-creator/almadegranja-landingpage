@@ -5,7 +5,7 @@ const { requireAuth } = require('../_utils/auth')
 
 const parseForm = (req) =>
   new Promise((resolve, reject) => {
-    const form = formidable({ multiples: false })
+    const form = formidable.formidable({ multiples: false })
     form.parse(req, (error, fields, files) => {
       if (error) {
         reject(error)
@@ -30,7 +30,12 @@ module.exports = async (req, res) => {
   const folder = process.env.CLOUDINARY_FOLDER
 
   if (!cloudName || !apiKey || !apiSecret) {
-    res.status(500).json({ message: 'Cloudinary no configurado' })
+    res.status(500).json({
+      message: 'Configuración incompleta Cloudinary (ENV).',
+      hasCloudName: Boolean(cloudName),
+      hasApiKey: Boolean(apiKey),
+      hasApiSecret: Boolean(apiSecret)
+    })
     return
   }
 
@@ -42,7 +47,7 @@ module.exports = async (req, res) => {
 
   try {
     const { files } = await parseForm(req)
-    const file = files.file
+    const file = files.file || files.image || files.imageFile || Object.values(files || {})[0]
     const filePath = Array.isArray(file) ? file[0]?.filepath : file?.filepath
 
     if (!filePath) {
@@ -55,8 +60,12 @@ module.exports = async (req, res) => {
     })
 
     await fs.unlink(filePath).catch(() => {})
-    res.status(200).json({ url: uploadResult.secure_url })
+    res.status(200).json({
+      url: uploadResult.secure_url,
+      publicId: uploadResult.public_id
+    })
   } catch (error) {
-    res.status(500).json({ message: 'No se pudo subir la imagen' })
+    console.error('[api/admin/upload] Error al subir imagen a Cloudinary:', error?.stack || error)
+    res.status(500).json({ message: error?.message || 'No se pudo subir la imagen' })
   }
 }
