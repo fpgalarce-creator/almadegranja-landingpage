@@ -1223,16 +1223,19 @@ function AdminDashboard({ token, onLogout }) {
         onLogout()
         return
       }
+      const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
         setUploadState({ loading: false, error: data.message || 'No se pudo subir la imagen.' })
         return
       }
-      const data = await res.json()
-      setForm((prev) => ({ ...prev, imageUrl: data.url || '' }))
+      if (!data.url) {
+        setUploadState({ loading: false, error: 'La respuesta no incluyó URL de imagen.' })
+        return
+      }
+      setForm((prev) => ({ ...prev, imageUrl: data.url }))
       setUploadState({ loading: false, error: '' })
     } catch (error) {
-      setUploadState({ loading: false, error: 'No se pudo subir la imagen.' })
+      setUploadState({ loading: false, error: error?.message || 'No se pudo subir la imagen.' })
     }
   }
 
