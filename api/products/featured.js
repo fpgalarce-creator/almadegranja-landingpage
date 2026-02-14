@@ -1,10 +1,16 @@
-const { readProducts } = require('../../server/utils/storage')
+const { getProducts } = require('../../server/utils/storage')
 
 module.exports = async (req, res) => {
   if (req.method !== 'GET') {
     res.status(405).json({ message: 'Método no permitido' })
     return
   }
-  const products = await readProducts()
-  res.status(200).json(products.filter((product) => product.isFeatured))
+
+  try {
+    const products = await getProducts()
+    res.status(200).json(products.filter((product) => product.isFeatured))
+  } catch (error) {
+    console.error('products/featured error', error)
+    res.status(500).json({ message: error?.message || 'Error al obtener productos destacados.' })
+  }
 }

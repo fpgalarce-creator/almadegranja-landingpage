@@ -1167,7 +1167,7 @@ function AdminDashboard({ token, onLogout }) {
         body: JSON.stringify(payload)
       })
     } catch (error) {
-      setError('No se pudo crear el producto')
+      setError(error?.message || 'No se pudo crear el producto')
       return
     }
 
