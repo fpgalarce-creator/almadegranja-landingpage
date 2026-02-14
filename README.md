@@ -36,7 +36,7 @@ Configúralas vía `.env` en `/server` si necesitas otras.
 Copia `/server/.env.example` a `/server/.env` y ajusta valores.
 
 - `ADMIN_USER`
-- `ADMIN_PASS`
+- `ADMIN_PASSWORD` (o `ADMIN_PASS`)
 - `JWT_SECRET`
 - `CLIENT_ORIGIN`
 - `CLOUDINARY_CLOUD_NAME`
@@ -73,4 +73,17 @@ se implemente upload directo.
 
 - Frontend: carpeta `/client`
 - Backend: despliega `/server` como proyecto Node
-- Configura las variables de entorno en el dashboard (ADMIN_USER, ADMIN_PASS, JWT_SECRET, CLOUDINARY_*).
+- Configura las variables de entorno en el dashboard (ADMIN_USER, ADMIN_PASSWORD o ADMIN_PASS, JWT_SECRET, CLOUDINARY_*).
+
+## Checklist Vercel ENV
+
+Variables requeridas para login/admin:
+
+- `ADMIN_USER`
+- `ADMIN_PASSWORD` (o `ADMIN_PASS`)
+- `JWT_SECRET`
+
+> Para evitar fallos en deployments, define las mismas variables tanto en **Production** como en **Preview**.
+
+Nota: URLs con formato `https://<project>-<hash>-<team>.vercel.app` normalmente corresponden a entornos **Preview**.
+

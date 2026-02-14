@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken')
 
 const ADMIN_USER = process.env.ADMIN_USERNAME || 'admin'
-const ADMIN_PASS = process.env.ADMIN_PASSWORD || 'admin'
+const ADMIN_PASS = process.env.ADMIN_PASSWORD || process.env.ADMIN_PASS || 'admin'
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_almadegranja'
 
 const createToken = (payload) => jwt.sign(payload, JWT_SECRET, { expiresIn: '2h' })
