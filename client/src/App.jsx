@@ -354,96 +354,103 @@ function Navbar({ totalItems, onCartClick, onCategorySelect }) {
           />
         </Link>
 
-        <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
-          <a href="#inicio" className="nav-link text-brand-700">
-            Inicio
-          </a>
-          <a href="#nosotros" className="nav-link text-brand-700">
-            Nosotros
-          </a>
-          <a href="#novedades" className="nav-link text-brand-700">
-            Novedades
-          </a>
-          <div
-            ref={productsMenuRef}
-            className="group relative"
-            onMouseEnter={openProductsMenu}
-            onMouseLeave={scheduleCloseProductsMenu}
-          >
-            <button
-              type="button"
-              className="nav-link flex items-center gap-2 text-brand-700"
-              onClick={() => setIsProductsOpen((prev) => !prev)}
-              aria-haspopup="true"
-              aria-expanded={isProductsOpen}
-            >
-              Productos
-              <span className="text-xs">▾</span>
-            </button>
+        <div className="flex items-center gap-3">
+          <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
+            <a href="#inicio" className="nav-link text-brand-700">
+              Inicio
+            </a>
+            <a href="#nosotros" className="nav-link text-brand-700">
+              Nosotros
+            </a>
+            <a href="#novedades" className="nav-link text-brand-700">
+              Novedades
+            </a>
             <div
+              ref={productsMenuRef}
+              className="group relative"
               onMouseEnter={openProductsMenu}
               onMouseLeave={scheduleCloseProductsMenu}
-              className={`absolute left-0 top-full mt-3 w-48 rounded-2xl border border-brand-100 bg-white p-2 shadow-xl shadow-brand-900/10 transition ${isProductsOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
-                } md:group-hover:pointer-events-auto md:group-hover:opacity-100`}
             >
-              {productLinks.map((item) => (
-                <button
-                  key={item.value}
-                  type="button"
-                  onClick={() => {
-                    onCategorySelect(item.value)
-                    setIsProductsOpen(false)
-                  }}
-                  className="nav-link block w-full rounded-xl px-4 py-2 text-left text-sm text-brand-700"
-                >
-                  {item.label}
-                </button>
-              ))}
+              <button
+                type="button"
+                className="nav-link flex items-center gap-2 text-brand-700"
+                onClick={() => setIsProductsOpen((prev) => !prev)}
+                aria-haspopup="true"
+                aria-expanded={isProductsOpen}
+              >
+                Productos
+                <span className="text-xs">▾</span>
+              </button>
+              <div
+                onMouseEnter={openProductsMenu}
+                onMouseLeave={scheduleCloseProductsMenu}
+                className={`absolute left-0 top-full mt-3 w-48 rounded-2xl border border-brand-100 bg-white p-2 shadow-xl shadow-brand-900/10 transition ${isProductsOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
+                  } md:group-hover:pointer-events-auto md:group-hover:opacity-100`}
+              >
+                {productLinks.map((item) => (
+                  <button
+                    key={item.value}
+                    type="button"
+                    onClick={() => {
+                      onCategorySelect(item.value)
+                      setIsProductsOpen(false)
+                    }}
+                    className="nav-link block w-full rounded-xl px-4 py-2 text-left text-sm text-brand-700"
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-          <a href="#contacto" className="nav-link text-brand-700">
-            Contacto
-          </a>
+            <a href="#contacto" className="nav-link text-brand-700">
+              Contacto
+            </a>
+            <button
+              type="button"
+              onClick={onCartClick}
+              className="flex items-center gap-2 rounded-full bg-brand-800 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-lg shadow-brand-900/15 transition hover:-translate-y-0.5 hover:bg-brand-700"
+            >
+              Carro ({totalItems})
+            </button>
+          </nav>
+          <img
+            src={heroImage}
+            alt="Vista de la granja"
+            className="hidden h-12 w-24 rounded-xl object-cover shadow-md shadow-brand-900/15 lg:block"
+          />
           <button
             type="button"
             onClick={onCartClick}
-            className="flex items-center gap-2 rounded-full bg-brand-800 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-lg shadow-brand-900/15 transition hover:-translate-y-0.5 hover:bg-brand-700"
+            className="md:hidden rounded-full border border-brand-200 px-3 py-1 text-xs font-semibold text-brand-700"
           >
             Carro ({totalItems})
           </button>
-        </nav>
-        <button
-          type="button"
-          onClick={onCartClick}
-          className="md:hidden rounded-full border border-brand-200 px-3 py-1 text-xs font-semibold text-brand-700"
-        >
-          Carro ({totalItems})
-        </button>
-        <div ref={productsMobileRef} className="relative md:hidden">
-          <button
-            type="button"
-            onClick={() => setIsProductsOpen((prev) => !prev)}
-            className="ml-2 rounded-full border border-brand-200 px-3 py-1 text-xs font-semibold text-brand-700"
-          >
-            Productos
-          </button>
-          {isProductsOpen ? (
-            <div className="absolute right-0 top-full mt-3 w-48 rounded-2xl border border-brand-100 bg-white p-2 shadow-xl shadow-brand-900/10">
-              {productLinks.map((item) => (
-                <button
-                  key={item.value}
-                  type="button"
-                  onClick={() => {
-                    onCategorySelect(item.value)
-                    setIsProductsOpen(false)
-                  }}
-                  className="nav-link block w-full rounded-xl px-4 py-2 text-left text-sm text-brand-700"
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          ) : null}
+          <div ref={productsMobileRef} className="relative md:hidden">
+            <button
+              type="button"
+              onClick={() => setIsProductsOpen((prev) => !prev)}
+              className="ml-2 rounded-full border border-brand-200 px-3 py-1 text-xs font-semibold text-brand-700"
+            >
+              Productos
+            </button>
+            {isProductsOpen ? (
+              <div className="absolute right-0 top-full mt-3 w-48 rounded-2xl border border-brand-100 bg-white p-2 shadow-xl shadow-brand-900/10">
+                {productLinks.map((item) => (
+                  <button
+                    key={item.value}
+                    type="button"
+                    onClick={() => {
+                      onCategorySelect(item.value)
+                      setIsProductsOpen(false)
+                    }}
+                    className="nav-link block w-full rounded-xl px-4 py-2 text-left text-sm text-brand-700"
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
     </header>
